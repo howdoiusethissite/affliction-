@@ -23,6 +23,7 @@ import com.afflictions.data.Limb;
 import com.afflictions.data.LimbState;
 import com.afflictions.data.PermanentState;
 import com.afflictions.data.TransientState;
+import com.afflictions.phobia.PhobiaKeys;
 
 public final class AfflictCommand {
 	private static final String[] TIERS = {"wood", "iron", "redstone", "netherite"};
@@ -33,12 +34,12 @@ public final class AfflictCommand {
 				.then(Commands.literal("list").then(player()
 						.executes(ctx -> list(ctx))))
 				.then(Commands.literal("phobia")
-						.then(Commands.literal("add").then(player().then(key("key").executes(ctx -> {
-							AfflictionData.addPhobia(target(ctx), StringArgumentType.getString(ctx, "key"));
+						.then(Commands.literal("add").then(player().then(phobiaKey().executes(ctx -> {
+							AfflictionData.addPhobia(target(ctx), PhobiaKeys.normalize(StringArgumentType.getString(ctx, "key")));
 							return done(ctx, "Added phobia");
 						}))))
-						.then(Commands.literal("remove").then(player().then(key("key").executes(ctx -> {
-							AfflictionData.removePhobia(target(ctx), StringArgumentType.getString(ctx, "key"));
+						.then(Commands.literal("remove").then(player().then(phobiaKey().executes(ctx -> {
+							AfflictionData.removePhobia(target(ctx), PhobiaKeys.normalize(StringArgumentType.getString(ctx, "key")));
 							return done(ctx, "Removed phobia");
 						})))))
 				.then(Commands.literal("scar")
@@ -88,6 +89,12 @@ public final class AfflictCommand {
 
 	private static ArgumentBuilder<CommandSourceStack, ?> player() {
 		return Commands.argument("player", EntityArgument.player());
+	}
+
+	/** Greedy so that "minecraft:zombie" needs no quotes. Bare names like "zombie" are accepted too. */
+	private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> phobiaKey() {
+		return Commands.argument("key", StringArgumentType.greedyString())
+				.suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(PhobiaKeys.allKnownKeys(), b));
 	}
 
 	private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> key(String name) {

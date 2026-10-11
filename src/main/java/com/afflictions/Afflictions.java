@@ -14,6 +14,7 @@ import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionAttachments;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.data.PermanentState;
+import com.afflictions.phobia.PhobiaManager;
 
 public class Afflictions implements ModInitializer {
 	public static final String MOD_ID = "afflictions";
@@ -23,6 +24,8 @@ public class Afflictions implements ModInitializer {
 	public void onInitialize() {
 		AfflictionsConfig.load();
 		AfflictionAttachments.initialize();
+
+		PhobiaManager.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
 				AfflictCommand.register(dispatcher));

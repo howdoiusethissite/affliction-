@@ -20,6 +20,24 @@ public final class AfflictionsConfig {
 
 	public boolean permanentConditionsSurviveDeath = true;
 
+	// Phase 2: phobias
+	/** Blocks within which a phobic player reacts to a feared mob. */
+	public double phobiaRange = 16.0;
+	/** Blocks scanned around the player for lava, fire and water phobias (scans are per-block, keep this small). */
+	public int phobiaEnvironmentRange = 5;
+	/** A fall phobia triggers when the drop under the player is at least this many blocks. */
+	public int phobiaFallDropBlocks = 8;
+	/** Ticks between proximity checks. */
+	public int phobiaCheckIntervalTicks = 10;
+	/** Length of the Nausea burst on first sighting, in ticks. */
+	public int phobiaNauseaTicks = 100;
+	/** Ticks that must pass out of sight before the same phobia can trigger another Nausea burst. */
+	public int phobiaNauseaCooldownTicks = 600;
+	/** Darkness is refreshed to at least this many ticks while a phobia trigger is near. */
+	public int phobiaDarknessTicks = 60;
+	/** Kills of the feared mob needed to cure a mob phobia by exposure. 0 disables exposure cures. */
+	public int exposureKillsToCure = 10;
+
 	public static AfflictionsConfig get() {
 		return instance;
 	}
