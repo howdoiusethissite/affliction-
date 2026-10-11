@@ -116,6 +116,16 @@ All records get static `EMPTY` defaults and `with...` copy methods. Never mutate
 - Not done: exhaustion as a loss source (no definition yet), amputation from late infection (Phase 6).
 - Untested in game: lost-heart outlines and scar icons render client side only. Dedicated server startup and the build were checked.
 
+## Phase 5 notes (done, 0.5.0)
+
+- Sneak + right-click an adult cleric while holding `clericPaymentItem` (default emerald) in the main hand. The click is consumed, so the trading screen does not open; without sneaking, vanilla trading is unchanged.
+- Each use buys one service, picked in this order: infection, phobia, scar. Infection clears every wound and infection with no scar (`InfectionManager.cureAll`). Phobia removes the one with the most exposure kills. Scar removes the oldest.
+- Gating by villager level and costs, all in the config: `clericInfectionMinLevel` 2 / `clericInfectionCost` 4, `clericPhobiaMinLevel` 1 / `clericPhobiaCost` 8, `clericScarMinLevel` 5 / `clericScarCost` 24. `clericHealingEnabled` turns it off.
+- Creative players pay nothing. Refusals (nothing to treat, level too low, not enough items) play the villager "no" sound and explain why in chat; success plays "yes" with happy-villager particles.
+- Max health loss is not a cleric service (the plan table gives it no cleric cure). Scar removal restores its max health penalty on the next MaxHealthManager tick.
+- Test: `/summon villager ~ ~ ~ {VillagerData:{profession:"minecraft:cleric",level:2,type:"minecraft:plains"}}`, then `/afflict infection add @s zombie 1`, hold emeralds and sneak + right-click it.
+- Checked: build, and dedicated server startup with FFInjury installed. The interaction itself has not been exercised with a real player.
+
 ## FFInjury integration (done with 0.4.0)
 
 Soft dependency: `fabric.mod.json` only lists it under `suggests`, and the build compiles against FFInjury 0.10.0 for 26.3 (API package `com.fyxe.ffinjury.api`). The jar is All Rights Reserved and has no known Maven repo, so it is not in git: put it at `libs/ffinjury-0.10.0-26.3-fabric.jar` before building (the build fails with a message if it is missing). All API use is isolated in `FfinjuryBridge`, which is only loaded after a `isModLoaded("ffinjury")` check in `FfinjuryCompat`.
