@@ -7,6 +7,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 
 import com.afflictions.Afflictions;
@@ -45,7 +46,7 @@ public final class FearHud {
 		graphics.fill(x - 1, y - 1, x + BAR_WIDTH + 1, y + BAR_HEIGHT + 1, 0xFF000000);
 		graphics.fill(x, y, x + BAR_WIDTH, y + BAR_HEIGHT, 0xFF303030);
 		if (filled > 0) graphics.fill(x, y, x + filled, y + BAR_HEIGHT, color);
-		graphics.text(minecraft.font, "Fear", x, y - minecraft.font.lineHeight - 1, 0xFFFFFFFF, true);
+		graphics.text(minecraft.font, Component.translatable("afflictions.hud.fear"), x, y - minecraft.font.lineHeight - 1, 0xFFFFFFFF, true);
 	}
 
 	private FearHud() {

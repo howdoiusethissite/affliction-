@@ -10,7 +10,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
 
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionData;
@@ -43,8 +46,8 @@ public final class ScarIcons {
 			drawScar(graphics, x, y);
 			if (mouseX >= x && mouseX < x + ICON && mouseY >= y && mouseY < y + ICON) {
 				List<Component> lines = new ArrayList<>();
-				lines.add(Component.literal("Scar: " + displayName(scars.get(i))));
-				lines.add(Component.literal("-" + trim(AfflictionsConfig.get().scarMaxHealthPenalty / 2.0) + " max hearts"));
+				lines.add(Component.translatable("afflictions.scar.name", displayName(scars.get(i))));
+				lines.add(Component.translatable("afflictions.scar.penalty", trim(AfflictionsConfig.get().scarMaxHealthPenalty / 2.0)));
 				graphics.setComponentTooltipForNextFrame(minecraft.font, lines, mouseX, mouseY);
 			}
 		}
@@ -61,8 +64,19 @@ public final class ScarIcons {
 		graphics.fill(x + 5, y + 5, x + 7, y + 6, 0xFFB03030);
 	}
 
-	/** "infection_zombie" becomes "Infection zombie". */
-	private static String displayName(String id) {
+	/** "wound_zombie" becomes "Wound from Zombie" and "infection_zombie" "Infection from Zombie". Unknown ids are shown as written. */
+	private static Component displayName(String id) {
+		for (String kind : new String[] {"wound", "infection"}) {
+			if (!id.startsWith(kind + "_")) continue;
+			String source = id.substring(kind.length() + 1);
+			Component sourceName = BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.withDefaultNamespace(source))
+					.map(EntityType::getDescription).orElseGet(() -> Component.literal(humanize(source)));
+			return Component.translatable("afflictions.scar.kind." + kind, sourceName);
+		}
+		return Component.literal(humanize(id));
+	}
+
+	private static String humanize(String id) {
 		String spaced = id.replace('_', ' ');
 		return spaced.isEmpty() ? spaced : Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
 	}

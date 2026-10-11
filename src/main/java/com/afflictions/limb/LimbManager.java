@@ -132,24 +132,29 @@ public final class LimbManager {
 		if (state.limb(limb) == LimbState.AMPUTATED && !state.implants().containsKey(limb)) return false;
 		PermanentState next = state.withLimb(limb, LimbState.AMPUTATED).withoutImplant(limb);
 		AfflictionData.setPermanent(player, next);
-		player.sendSystemMessage(Component.literal("You lose your " + describe(limb) + "."));
+		player.sendSystemMessage(Component.translatable("afflictions.message.limb_lost", limbName(limb)));
 		player.level().playSound(null, player.blockPosition(), SoundEvents.PLAYER_HURT, SoundSource.PLAYERS, 1.0f, 0.6f);
 		return true;
 	}
 
 	/** Takes a random limb that is still intact. Returns false when none are left. */
 	public static boolean amputateRandom(ServerPlayer player) {
+		return amputateRandom(player, Limb.values());
+	}
+
+	/** Takes a random limb from the given ones that is still intact. Returns false when none are left. */
+	public static boolean amputateRandom(ServerPlayer player, Limb... pool) {
 		PermanentState state = AfflictionData.getPermanent(player);
 		List<Limb> intact = new ArrayList<>();
-		for (Limb limb : Limb.values()) {
+		for (Limb limb : pool) {
 			if (state.limb(limb) == LimbState.INTACT) intact.add(limb);
 		}
 		if (intact.isEmpty()) return false;
 		return amputate(player, intact.get(player.getRandom().nextInt(intact.size())));
 	}
 
-	public static String describe(Limb limb) {
-		return limb.getSerializedName().replace('_', ' ');
+	public static Component limbName(Limb limb) {
+		return Component.translatable("afflictions.limb." + limb.getSerializedName());
 	}
 
 	// ---- implants ------------------------------------------------------------------------------------------
@@ -178,9 +183,8 @@ public final class LimbManager {
 			}
 		}
 		if (target == null) {
-			player.sendSystemMessage(Component.literal(
-					"Nothing to fit this to: you need a missing " + (item.isArm() ? "arm" : "leg")
-							+ " without an implant of this tier."));
+			player.sendSystemMessage(Component.translatable(
+					item.isArm() ? "afflictions.message.implant_no_target.arm" : "afflictions.message.implant_no_target.leg"));
 			return;
 		}
 
@@ -191,7 +195,7 @@ public final class LimbManager {
 		if (previous != null) giveBack(player, previous, item.isArm());
 
 		player.level().playSound(null, player.blockPosition(), SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
-		player.sendSystemMessage(Component.literal("You fit a " + item.tier().id() + " implant to your " + describe(target) + "."));
+		player.sendSystemMessage(Component.translatable("afflictions.message.implant_fitted", Component.translatable("afflictions.tier." + item.tier().id()), limbName(target)));
 	}
 
 	/** Returns a removed implant to the player as an item. Its charge is lost. */
@@ -256,7 +260,7 @@ public final class LimbManager {
 			int charge = Math.max(0, entry.charge() - CHARGE_INTERVAL);
 			next = next.withImplant(limb, entry.withCharge(charge));
 			if (charge == 0) {
-				player.sendSystemMessage(Component.literal("Your " + describe(limb) + " implant has run out of charge. Sneak + use redstone dust to recharge it."));
+				player.sendSystemMessage(Component.translatable("afflictions.message.implant_depleted", limbName(limb)));
 			}
 		}
 		if (!next.equals(state)) AfflictionData.setPermanent(player, next);
@@ -300,7 +304,7 @@ public final class LimbManager {
 		ItemStack moved = offhand.copy();
 		player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
 		player.getInventory().placeItemBackInInventory(moved, Prediction.SERVER_ONLY);
-		player.sendSystemMessage(Component.literal("You cannot hold anything in your offhand without an arm there."));
+		player.sendSystemMessage(Component.translatable("afflictions.message.offhand_blocked"));
 	}
 
 	private LimbManager() {

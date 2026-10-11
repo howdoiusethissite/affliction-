@@ -3,6 +3,10 @@ package com.afflictions.config;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -18,10 +22,12 @@ public final class AfflictionsConfig {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static AfflictionsConfig instance = new AfflictionsConfig();
 
+	@Section("General")
 	public boolean permanentConditionsSurviveDeath = true;
 
 	// Phase 2: phobias
 	/** Blocks within which a phobic player reacts to a feared mob. */
+	@Section("Phobias")
 	public double phobiaRange = 16.0;
 	/** Blocks scanned around the player for lava, fire and water phobias (scans are per-block, keep this small). */
 	public int phobiaEnvironmentRange = 5;
@@ -40,6 +46,7 @@ public final class AfflictionsConfig {
 
 	// Phase 3: fear meter. Rates are fear points per second; fear runs from 0 to 100.
 	/** Ticks between fear updates. Rates are scaled so this only changes granularity, not speed. */
+	@Section("Fear")
 	public int fearCheckIntervalTicks = 20;
 	/** Fear drains while the light at the player's head is at or below this level (0 to 15). */
 	public int fearDarkLightLevel = 3;
@@ -65,9 +72,10 @@ public final class AfflictionsConfig {
 
 	// Phase 4: infection, scars, max health loss. Health values are health points (2 per heart).
 	/** Chance that a mob hit of at least infectionMinDamage opens a wound with a risk window. */
-	public double infectionChance = 0.35;
+	@Section("Infection and scars")
+	public double infectionChance = 0.25;
 	public double infectionMinDamage = 2.0;
-	public int infectionRiskWindowTicks = 2400;
+	public int infectionRiskWindowTicks = 3600;
 	/** Chance an untreated wound sets in when its window closes. */
 	public double infectionSetInChance = 0.6;
 	/** Subtracted from infectionSetInChance for each water rinse during the window. */
@@ -83,6 +91,7 @@ public final class AfflictionsConfig {
 	/** A single mob hit of at least this much damage leaves a scar. 0 disables. */
 	public double scarSevereHitDamage = 10.0;
 	/** Max health lost per scar. */
+	@Section("Max health")
 	public double scarMaxHealthPenalty = 1.0;
 	/** Max health never drops below this, however much is lost. */
 	public double minMaxHealth = 4.0;
@@ -98,6 +107,7 @@ public final class AfflictionsConfig {
 
 	// Phase 5: cleric healing. Sneak + right-click a cleric holding the payment item. Levels are villager levels:
 	// 1 novice, 2 apprentice, 3 journeyman, 4 expert, 5 master.
+	@Section("Cleric healing")
 	public boolean clericHealingEnabled = true;
 	/** Item id the cleric accepts, taken from the stack in the player's main hand. */
 	public String clericPaymentItem = "minecraft:emerald";
@@ -113,6 +123,7 @@ public final class AfflictionsConfig {
 
 	// Phase 6: amputation and implants. A penalty of 1.0 is a missing limb; 0 is a healthy one; negative is better than natural.
 	/** Chance, each time an infection at the max stage goes another stage interval untreated, that it takes a limb. 0 disables. */
+	@Section("Amputation and implants")
 	public double infectionAmputationChance = 0.25;
 	/** Penalty left by each implant tier. Redstone only counts as charged while it has charge, otherwise it acts as a dead limb. */
 	public double implantPenaltyWood = 0.5;
@@ -133,6 +144,7 @@ public final class AfflictionsConfig {
 
 	// FFInjury integration. Everything here is ignored when FFInjury is not installed.
 	/** FFInjury injury ids that open an infection wound when newly applied. */
+	@Section("FFInjury integration")
 	public java.util.List<String> ffinjuryWoundInjuries = java.util.List.of("bleeding", "burn");
 	/** Fear drain per second for each injury the player has. */
 	public double fearInjuryDrainPerSecond = 0.25;
@@ -141,8 +153,32 @@ public final class AfflictionsConfig {
 	/** When true and FFInjury is installed, mob hits no longer open wounds by themselves. */
 	public boolean ffinjuryReplacesMobWounds = false;
 
+	// Phase 8: the "re-broken limb at max tier" amputation. A leg injury already at FFInjury's max tier that is
+	// hit again by one of these damage types for at least the minimum damage can take a leg.
+	/** FFInjury injury ids that count as a broken leg for the re-break trigger. Empty disables the trigger. */
+	public java.util.List<String> ffinjuryLimbBreakInjuries = java.util.List.of("broken_leg", "ankle_fracture");
+	public java.util.List<String> ffinjuryLimbBreakDamageTypes = java.util.List.of("minecraft:fall");
+	public double ffinjuryLimbBreakMinDamage = 4.0;
+	public double ffinjuryLimbBreakAmputationChance = 0.35;
+
+	// Phase 8: tooltips on vanilla treatment items (client side).
+	@Section("Interface")
+	public boolean treatmentTooltipsEnabled = true;
+
+	/** Marks the first option of a group so the config screen can print a heading above it. */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	public @interface Section {
+		String value();
+	}
+
 	public static AfflictionsConfig get() {
 		return instance;
+	}
+
+	/** Throws away unsaved changes by reading the file again. */
+	public static void reload() {
+		load();
 	}
 
 	public static void load() {
@@ -156,11 +192,21 @@ public final class AfflictionsConfig {
 			}
 		}
 		// Write back so new keys added in later versions appear in the file.
+		save();
+	}
+
+	public static void save() {
+		Path path = FabricLoader.getInstance().getConfigDir().resolve(Afflictions.MOD_ID + ".json");
 		try (Writer writer = Files.newBufferedWriter(path)) {
 			GSON.toJson(instance, writer);
 		} catch (IOException e) {
 			Afflictions.LOGGER.error("Could not write {}", path, e);
 		}
+	}
+
+	/** A fresh copy with every option at its default, for showing defaults in the config screen. */
+	public static AfflictionsConfig defaults() {
+		return new AfflictionsConfig();
 	}
 
 	private AfflictionsConfig() {

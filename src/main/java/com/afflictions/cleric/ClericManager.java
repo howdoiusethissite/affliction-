@@ -36,10 +36,14 @@ public final class ClericManager {
 		PHOBIA("phobia"),
 		SCAR("scar");
 
-		final String label;
+		private final String id;
 
-		Service(String label) {
-			this.label = label;
+		Service(String id) {
+			this.id = id;
+		}
+
+		Component label() {
+			return Component.translatable("afflictions.service." + this.id);
 		}
 	}
 
@@ -99,14 +103,13 @@ public final class ClericManager {
 		boolean infected = !AfflictionData.getTransient(player).infections().isEmpty();
 		Service service = nextNeeded(permanent, infected);
 		if (service == null) {
-			refuse(player, villager, "The cleric looks you over and finds nothing to treat.");
+			refuse(player, villager, Component.translatable("afflictions.cleric.nothing"));
 			return;
 		}
 
 		int level = villager.getVillagerData().level();
 		if (level < minLevel(service)) {
-			refuse(player, villager, "This cleric is not experienced enough to treat your " + service.label
-					+ ". Come back with one of level " + minLevel(service) + " or higher.");
+			refuse(player, villager, Component.translatable("afflictions.cleric.too_low", service.label(), minLevel(service)));
 			return;
 		}
 
@@ -114,8 +117,7 @@ public final class ClericManager {
 		int cost = cost(service);
 		boolean free = player.hasInfiniteMaterials();
 		if (!free && held.getCount() < cost) {
-			refuse(player, villager, "Treating your " + service.label + " costs " + cost + " "
-					+ held.getHoverName().getString() + ".");
+			refuse(player, villager, Component.translatable("afflictions.cleric.cost", service.label(), cost, held.getHoverName()));
 			return;
 		}
 
@@ -126,11 +128,7 @@ public final class ClericManager {
 		villager.playSound(SoundEvents.VILLAGER_YES, 1.0f, villager.getVoicePitch());
 		serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getEyeY(), villager.getZ(),
 				7, 0.5, 0.5, 0.5, 0.0);
-		player.sendSystemMessage(Component.literal(switch (service) {
-			case INFECTION -> "The cleric cleans your wounds and the infection leaves you.";
-			case PHOBIA -> "The cleric talks you through your fear and it loosens its grip.";
-			case SCAR -> "The cleric works over an old scar until it fades.";
-		}));
+		player.sendSystemMessage(Component.translatable("afflictions.cleric.done." + service.name().toLowerCase(java.util.Locale.ROOT)));
 	}
 
 	/** Applies the treatment itself. Returns false if there turned out to be nothing to treat. */
@@ -155,9 +153,9 @@ public final class ClericManager {
 		return true;
 	}
 
-	private static void refuse(ServerPlayer player, Villager villager, String message) {
+	private static void refuse(ServerPlayer player, Villager villager, Component message) {
 		villager.playSound(SoundEvents.VILLAGER_NO, 1.0f, villager.getVoicePitch());
-		player.sendSystemMessage(Component.literal(message));
+		player.sendSystemMessage(message);
 	}
 
 	private ClericManager() {
