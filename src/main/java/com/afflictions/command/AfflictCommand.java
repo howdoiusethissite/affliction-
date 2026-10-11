@@ -23,6 +23,7 @@ import com.afflictions.data.Limb;
 import com.afflictions.data.LimbState;
 import com.afflictions.data.PermanentState;
 import com.afflictions.data.TransientState;
+import com.afflictions.fear.FearManager;
 import com.afflictions.phobia.PhobiaKeys;
 
 public final class AfflictCommand {
@@ -76,7 +77,9 @@ public final class AfflictCommand {
 							AfflictionData.clearImplant(target(ctx), limbArg(ctx));
 							return done(ctx, "Cleared implant");
 						})))))
-				.then(Commands.literal("fear").then(Commands.literal("set").then(player().then(
+				.then(Commands.literal("fear")
+						.then(Commands.literal("rate").then(player().executes(ctx -> rate(ctx))))
+						.then(Commands.literal("set").then(player().then(
 						Commands.argument("value", FloatArgumentType.floatArg(0f, 100f)).executes(ctx -> {
 							AfflictionData.setFear(target(ctx), FloatArgumentType.getFloat(ctx, "value"));
 							return done(ctx, "Set fear");
@@ -123,6 +126,16 @@ public final class AfflictCommand {
 	private static int done(CommandContext<CommandSourceStack> ctx, String what) throws CommandSyntaxException {
 		ServerPlayer p = target(ctx);
 		ctx.getSource().sendSuccess(() -> Component.literal(what + " for " + p.getName().getString()), true);
+		return 1;
+	}
+
+	private static int rate(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		ServerPlayer p = target(ctx);
+		FearManager.Rates r = FearManager.compute(p, true);
+		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
+				"Fear %.1f for %s, net %+.2f/s. Drain: dark %.2f, cave %.2f, phobia %.2f. Recovery: campfire %.2f, jukebox %.2f, companion %.2f, sleep %.2f, passive %.2f",
+				AfflictionData.getFear(p), p.getName().getString(), r.net(),
+				r.dark(), r.cave(), r.phobia(), r.campfire(), r.jukebox(), r.companion(), r.sleep(), r.passive())), false);
 		return 1;
 	}
 
