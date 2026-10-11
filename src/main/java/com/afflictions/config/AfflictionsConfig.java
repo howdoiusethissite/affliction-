@@ -96,6 +96,21 @@ public final class AfflictionsConfig {
 	public double restorerMaxHealthRestore = 4.0;
 	public boolean lostHeartsHudEnabled = true;
 
+	// Phase 5: cleric healing. Sneak + right-click a cleric holding the payment item. Levels are villager levels:
+	// 1 novice, 2 apprentice, 3 journeyman, 4 expert, 5 master.
+	public boolean clericHealingEnabled = true;
+	/** Item id the cleric accepts, taken from the stack in the player's main hand. */
+	public String clericPaymentItem = "minecraft:emerald";
+	/** Clears every wound and infection without leaving a scar. */
+	public int clericInfectionMinLevel = 2;
+	public int clericInfectionCost = 4;
+	/** Cures the phobia closest to being cured by exposure. */
+	public int clericPhobiaMinLevel = 1;
+	public int clericPhobiaCost = 8;
+	/** Removes the oldest scar. */
+	public int clericScarMinLevel = 5;
+	public int clericScarCost = 24;
+
 	// FFInjury integration. Everything here is ignored when FFInjury is not installed.
 	/** FFInjury injury ids that open an infection wound when newly applied. */
 	public java.util.List<String> ffinjuryWoundInjuries = java.util.List.of("bleeding", "burn");

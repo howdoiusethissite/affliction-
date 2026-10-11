@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.afflictions.cleric.ClericManager;
 import com.afflictions.command.AfflictCommand;
 import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
@@ -33,6 +34,7 @@ public class Afflictions implements ModInitializer {
 		FearManager.register();
 		InfectionManager.register();
 		MaxHealthManager.register();
+		ClericManager.register();
 		FfinjuryCompat.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
