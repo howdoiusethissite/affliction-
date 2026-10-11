@@ -14,6 +14,8 @@ public class AfflictionsClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		FearHud.register();
+
 		// Debug only: log the synced values once whenever they change.
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null) {

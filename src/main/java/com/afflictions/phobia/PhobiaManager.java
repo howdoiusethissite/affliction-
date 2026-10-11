@@ -32,6 +32,14 @@ public final class PhobiaManager {
 	/** Per player, the server tick at which each phobia was last sighted. Used to space out Nausea bursts. */
 	private static final Map<UUID, Map<String, Long>> LAST_SIGHTED = new HashMap<>();
 
+	/** Per player, how many of their phobias had a trigger in range at the last proximity check. */
+	private static final Map<UUID, Integer> ACTIVE_COUNT = new HashMap<>();
+
+	/** Number of the player's phobias whose trigger is currently in range. Feeds fear drain. */
+	public static int activePhobiaCount(ServerPlayer player) {
+		return ACTIVE_COUNT.getOrDefault(player.getUUID(), 0);
+	}
+
 	public static void register() {
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (entity instanceof ServerPlayer player) {
@@ -72,30 +80,37 @@ public final class PhobiaManager {
 	}
 
 	private static void tickPlayer(ServerPlayer player, int now) {
-		if (!player.isAlive() || player.isSpectator()) return;
+		if (!player.isAlive() || player.isSpectator()) {
+			ACTIVE_COUNT.remove(player.getUUID());
+			return;
+		}
 		Map<String, PhobiaEntry> phobias = AfflictionData.getPermanent(player).phobias();
 		if (phobias.isEmpty()) {
 			LAST_SIGHTED.remove(player.getUUID());
+			ACTIVE_COUNT.remove(player.getUUID());
 			return;
 		}
 
 		AfflictionsConfig config = AfflictionsConfig.get();
 		Map<String, Long> sighted = LAST_SIGHTED.computeIfAbsent(player.getUUID(), id -> new HashMap<>());
-		boolean anyNear = false;
+		int nearCount = 0;
 		boolean burst = false;
 		for (String key : phobias.keySet()) {
 			Presence presence = presence(player, key);
 			if (!presence.near) continue;
-			anyNear = true;
+			nearCount++;
 			if (!presence.seen) continue;
 			Long last = sighted.put(key, (long) now);
 			if (last == null || now - last > config.phobiaNauseaCooldownTicks) burst = true;
 		}
 
+		if (nearCount > 0) ACTIVE_COUNT.put(player.getUUID(), nearCount);
+		else ACTIVE_COUNT.remove(player.getUUID());
+
 		if (burst && config.phobiaNauseaTicks > 0) {
 			player.addEffect(new MobEffectInstance(MobEffects.NAUSEA, config.phobiaNauseaTicks, 0, false, false, true));
 		}
-		if (anyNear && config.phobiaDarknessTicks > 0) {
+		if (nearCount > 0 && config.phobiaDarknessTicks > 0) {
 			player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, config.phobiaDarknessTicks, 0, false, false, false));
 		}
 	}

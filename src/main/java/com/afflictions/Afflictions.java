@@ -13,6 +13,7 @@ import com.afflictions.command.AfflictCommand;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionAttachments;
 import com.afflictions.data.AfflictionData;
+import com.afflictions.fear.FearManager;
 import com.afflictions.data.PermanentState;
 import com.afflictions.phobia.PhobiaManager;
 
@@ -26,6 +27,7 @@ public class Afflictions implements ModInitializer {
 		AfflictionAttachments.initialize();
 
 		PhobiaManager.register();
+		FearManager.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
 				AfflictCommand.register(dispatcher));

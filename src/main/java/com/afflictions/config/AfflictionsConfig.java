@@ -38,6 +38,31 @@ public final class AfflictionsConfig {
 	/** Kills of the feared mob needed to cure a mob phobia by exposure. 0 disables exposure cures. */
 	public int exposureKillsToCure = 10;
 
+	// Phase 3: fear meter. Rates are fear points per second; fear runs from 0 to 100.
+	/** Ticks between fear updates. Rates are scaled so this only changes granularity, not speed. */
+	public int fearCheckIntervalTicks = 20;
+	/** Fear drains while the light at the player's head is at or below this level (0 to 15). */
+	public int fearDarkLightLevel = 3;
+	public double fearDarkDrainPerSecond = 0.5;
+	/** Cave drain applies when the player is at least this many blocks below the surface in a dimension with sky light. */
+	public int fearCaveDepthBlocks = 8;
+	public double fearCaveDrainPerSecond = 0.25;
+	/** Drain per feared thing in range (uses phobiaRange and the other phobia settings). Stacks per phobia. */
+	public double fearPhobiaDrainPerSecond = 1.5;
+	/** Blocks scanned around the player for lit campfires and playing jukeboxes. */
+	public int fearComfortRange = 6;
+	public double fearCampfireRecoveryPerSecond = 1.0;
+	public double fearJukeboxRecoveryPerSecond = 1.0;
+	/** Blocks within which a tamed pet owned by the player, or any villager, calms them. Counts once. */
+	public double fearCompanionRange = 8.0;
+	public double fearCompanionRecoveryPerSecond = 0.5;
+	public double fearSleepRecoveryPerSecond = 3.0;
+	/** Slow recovery that applies only when nothing is draining fear. 0 disables it. */
+	public double fearPassiveRecoveryPerSecond = 0.1;
+	public boolean fearHudEnabled = true;
+	/** When false the bar only appears while fear is below 100. */
+	public boolean fearHudAlwaysVisible = true;
+
 	public static AfflictionsConfig get() {
 		return instance;
 	}
