@@ -19,6 +19,7 @@ Lock these before Phase 1; each one changes the data model. Suggested defaults a
 | What survives death | Phobias, scars, amputations, implants, sanity | Phobias, scars, amputations and implants persist; sanity resets to full; infections clear |
 | Persistence toggle | Config flag for hardcore-only permanence | Yes, `permanentConditionsSurviveDeath` (default true) |
 | Fear HUD | Own bar, vanilla effect icon, hidden | Own small bar beside the hunger bar |
+| Max health loss persistence | Resets on death or survives | Resets on death (stored in transient state); scars still persist and cost max health |
 | Milk interaction | Clears mod conditions or not | Mod state is player data, so milk never touches it |
 
 ## Systems
@@ -105,6 +106,15 @@ All records get static `EMPTY` defaults and `with...` copy methods. Never mutate
 - [ ] Add phobia and fear 40, die: phobia kept, fear back to 100
 - [ ] Config toggle false, die: phobia cleared
 - [ ] Client can read synced values (log them once on change, debug only)
+
+## Phase 4 notes (done, 0.4.0)
+
+- Wounds: a mob hit of at least `infectionMinDamage` rolls `infectionChance` and opens a wound (stage 0) with a risk window. Honey bottle (`#afflictions:antiseptics`) closes it, water bottle (`#afflictions:rinses`) adds a rinse that lowers the set-in chance. When the window closes it rolls `infectionSetInChance` minus the rinse reduction.
+- Stages 1 to 3 every `infectionStageTicks`: Weakness, then Hunger, then stronger Weakness plus Slowness and max health loss each interval. Regeneration clears a set-in infection; curing at `infectionScarMinStage` or later leaves a scar. A single hit of `scarSevereHitDamage` also leaves a scar.
+- Max health loss comes from an empty food bar and from infection, recovers while well fed and faster asleep, and `#afflictions:max_health_restorers` (golden apples, glistering melon) restores it. Each scar costs `scarMaxHealthPenalty`.
+- New commands: `/afflict infection add/remove`, `/afflict maxhealth loss`.
+- Not done: exhaustion as a loss source (no definition yet), amputation from late infection (Phase 6), FFInjury hooks (its API was not checked).
+- Untested in game: lost-heart outlines and scar icons render client side only. Dedicated server startup and the build were checked.
 
 ## Workflow rules
 
