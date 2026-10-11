@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "afflictions",
+	"version": "${version}",
+	"name": "Afflictions",
+	"description": "Phobias, infections, scars, amputations and implants for survival Minecraft.",
+	"authors": [
+		"Afflictions"
+	],
+	"contact": {},
+	"license": "CC0-1.0",
+	"icon": "assets/afflictions/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.afflictions.Afflictions"
+		],
+		"client": [
+			"com.afflictions.client.AfflictionsClient"
+		]
+	},
+	"mixins": [
+		"afflictions.mixins.json",
+		{
+			"config": "afflictions.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
