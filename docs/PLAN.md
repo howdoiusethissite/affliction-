@@ -126,6 +126,17 @@ All records get static `EMPTY` defaults and `with...` copy methods. Never mutate
 - Test: `/summon villager ~ ~ ~ {VillagerData:{profession:"minecraft:cleric",level:2,type:"minecraft:plains"}}`, then `/afflict infection add @s zombie 1`, hold emeralds and sneak + right-click it.
 - Checked: build, and dedicated server startup with FFInjury installed. The interaction itself has not been exercised with a real player.
 
+## Phase 6 notes (done, 0.6.0)
+
+- Limb penalty: 0 intact, 1 amputated with nothing fitted, otherwise the implant tier's penalty (`implantPenaltyWood` 0.5, `Iron` 0.25, `Redstone` -0.1, `Netherite` -0.15). Implants only count on an amputated limb. A redstone implant at 0 charge counts as nothing fitted. Code: `LimbManager.penalty`.
+- Effects: legs scale movement speed (`legSpeedPenalty`) and a fully missing leg blocks sprinting. Arms scale mining speed (`armMiningPenalty`) and attack speed (`armAttackSpeedPenalty`). The offhand arm is the one opposite the main arm; when it is fully missing the offhand cannot be used and its item is moved to the inventory.
+- Amputation sources: an infection at max stage going another interval untreated rolls `infectionAmputationChance` (default 0.25) to take a random intact limb. `/afflict limb amputate` now also drops any fitted implant. Not done: the "re-broken limb at max tier" trigger (needs a decision on which FFInjury injuries count).
+- New items (the only ones in the mod): `<tier>_<arm|leg>_implant` for wood, iron, redstone, netherite, with shaped recipes under `data/afflictions/recipe`, placeholder textures and an en_us lang file with only these item names. They appear in the Tools & Utilities creative tab.
+- Install: right-click a smithing table holding an implant. It fills a missing limb of that kind with no implant first, otherwise swaps an implant of a different tier (the old one returns as an item, charge lost).
+- Redstone charge is in ticks, drains 100 per 100 ticks while installed (`redstoneMaxCharge` 36000). Sneak + use redstone dust refills `redstoneDustCharge`. New install starts with `redstoneInstallCharge`.
+- New command: `/afflict implant charge <player> <limb> <ticks>`.
+- Checked: build and dedicated server startup with FFInjury (items and recipes load without errors). Not exercised with a real player: smithing table install, dust recharge, sprint and offhand blocking, attribute modifiers.
+
 ## FFInjury integration (done with 0.4.0)
 
 Soft dependency: `fabric.mod.json` only lists it under `suggests`, and the build compiles against FFInjury 0.10.0 for 26.3 (API package `com.fyxe.ffinjury.api`). The jar is All Rights Reserved and has no known Maven repo, so it is not in git: put it at `libs/ffinjury-0.10.0-26.3-fabric.jar` before building (the build fails with a message if it is missing). All API use is isolated in `FfinjuryBridge`, which is only loaded after a `isModLoaded("ffinjury")` check in `FfinjuryCompat`.

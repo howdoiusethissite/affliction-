@@ -17,7 +17,9 @@ import com.afflictions.data.AfflictionAttachments;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.fear.FearManager;
 import com.afflictions.health.MaxHealthManager;
+import com.afflictions.implant.AfflictionItems;
 import com.afflictions.infection.InfectionManager;
+import com.afflictions.limb.LimbManager;
 import com.afflictions.data.PermanentState;
 import com.afflictions.phobia.PhobiaManager;
 
@@ -30,11 +32,13 @@ public class Afflictions implements ModInitializer {
 		AfflictionsConfig.load();
 		AfflictionAttachments.initialize();
 
+		AfflictionItems.register();
 		PhobiaManager.register();
 		FearManager.register();
 		InfectionManager.register();
 		MaxHealthManager.register();
 		ClericManager.register();
+		LimbManager.register();
 		FfinjuryCompat.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->

@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "afflictions:item/wood_leg_implant"
+ }
+}
