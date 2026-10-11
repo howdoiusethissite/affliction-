@@ -46,7 +46,7 @@ One phase per chat. Each ends with a build that launches and something testable 
 1. **Player data and debug commands.** No gameplay. Data object, persistence, client sync, `/afflict` commands. Detailed below.
 2. **Phobias.** Record killer on death, apply phobia on respawn, proximity effects, exposure cure counter.
 3. **Fear meter.** Drain and recovery sources, HUD bar, phobias feed into drain.
-4. **Infection, scars, max health loss.** Infection risk window, tag-based treatments, attribute modifiers for hearts, dark heart outlines, scar icons in inventory. Optional FFInjury hooks here.
+4. **Infection, scars, max health loss.** Infection risk window, tag-based treatments, attribute modifiers for hearts, dark heart outlines, scar icons in inventory.
 5. **Cleric healing.** Sneak + right-click a cleric holding emeralds; services gated by villager level; costs from config.
 6. **Amputation and implants.** Implant items and recipes, smithing table install, redstone charge, stat effects per limb.
 7. **Hallucinations.** Client-side fake entities and sounds driven by synced fear value. Last, because it is the most fiddly and depends on everything above.
@@ -113,8 +113,24 @@ All records get static `EMPTY` defaults and `with...` copy methods. Never mutate
 - Stages 1 to 3 every `infectionStageTicks`: Weakness, then Hunger, then stronger Weakness plus Slowness and max health loss each interval. Regeneration clears a set-in infection; curing at `infectionScarMinStage` or later leaves a scar. A single hit of `scarSevereHitDamage` also leaves a scar.
 - Max health loss comes from an empty food bar and from infection, recovers while well fed and faster asleep, and `#afflictions:max_health_restorers` (golden apples, glistering melon) restores it. Each scar costs `scarMaxHealthPenalty`.
 - New commands: `/afflict infection add/remove`, `/afflict maxhealth loss`.
-- Not done: exhaustion as a loss source (no definition yet), amputation from late infection (Phase 6), FFInjury hooks (its API was not checked).
+- Not done: exhaustion as a loss source (no definition yet), amputation from late infection (Phase 6).
 - Untested in game: lost-heart outlines and scar icons render client side only. Dedicated server startup and the build were checked.
+
+## FFInjury integration (done with 0.4.0)
+
+Soft dependency: `fabric.mod.json` only lists it under `suggests`, and the build compiles against FFInjury 0.10.0 for 26.3 (API package `com.fyxe.ffinjury.api`). The jar is All Rights Reserved and has no known Maven repo, so it is not in git: put it at `libs/ffinjury-0.10.0-26.3-fabric.jar` before building (the build fails with a message if it is missing). All API use is isolated in `FfinjuryBridge`, which is only loaded after a `isModLoaded("ffinjury")` check in `FfinjuryCompat`.
+
+| Direction | Hook | Effect |
+| --- | --- | --- |
+| FFInjury to us | `InjuryAppliedEvent` (new injury) | Ids in `ffinjuryWoundInjuries` (default bleeding, burn) open an infection wound with source `ffinjury:<id>` |
+| FFInjury to us | `InjuryTreatedEvent` | A bandage also seals any open wound |
+| FFInjury to us | `InjuryAPI.getInjuryCount` | Each injury drains fear by `fearInjuryDrainPerSecond` |
+| Us to FFInjury | Infection reaching its max stage | Grants `ffinjuryInfectionInjury` (default bleeding), guarded so it cannot loop back into a wound |
+| Both | `isGameplaySuppressed` | Creative players are skipped |
+
+`ffinjuryReplacesMobWounds` (default false) stops mob hits from opening wounds on their own when FFInjury is installed, to avoid two systems punishing the same hit. Phase 6 can read broken leg and ribs through `InjuryAPI.hasInjury`.
+
+Only startup with both mods was checked (the log shows the integration enabled). The event hooks have not been exercised with a real player, and running without FFInjury was not tested.
 
 ## Workflow rules
 

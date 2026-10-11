@@ -96,6 +96,16 @@ public final class AfflictionsConfig {
 	public double restorerMaxHealthRestore = 4.0;
 	public boolean lostHeartsHudEnabled = true;
 
+	// FFInjury integration. Everything here is ignored when FFInjury is not installed.
+	/** FFInjury injury ids that open an infection wound when newly applied. */
+	public java.util.List<String> ffinjuryWoundInjuries = java.util.List.of("bleeding", "burn");
+	/** Fear drain per second for each injury the player has. */
+	public double fearInjuryDrainPerSecond = 0.25;
+	/** FFInjury injury id granted when an infection first reaches its max stage. Empty disables. */
+	public String ffinjuryInfectionInjury = "bleeding";
+	/** When true and FFInjury is installed, mob hits no longer open wounds by themselves. */
+	public boolean ffinjuryReplacesMobWounds = false;
+
 	public static AfflictionsConfig get() {
 		return instance;
 	}

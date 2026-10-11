@@ -22,6 +22,7 @@ import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 
 import com.afflictions.Afflictions;
+import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.data.InfectionEntry;
@@ -62,6 +63,8 @@ public final class InfectionManager {
 		if (config.scarSevereHitDamage > 0 && damage >= config.scarSevereHitDamage) {
 			AfflictionData.addScar(player, "wound_" + name);
 		}
+
+		if (config.ffinjuryReplacesMobWounds && FfinjuryCompat.isLoaded()) return;
 
 		if (damage < config.infectionMinDamage) return;
 		if (AfflictionData.getTransient(player).infections().containsKey(key)) return;
@@ -109,6 +112,7 @@ public final class InfectionManager {
 				next.put(key, advanced);
 				worst = Math.max(worst, advanced.stage());
 				player.sendSystemMessage(Component.literal("Your infection is getting worse."));
+				if (advanced.stage() >= config.infectionMaxStage) FfinjuryCompat.grantInfectionInjury(player);
 			} else {
 				next.put(key, entry.withRiskEndsTick(now + config.infectionStageTicks));
 				worst = Math.max(worst, entry.stage());
@@ -143,7 +147,11 @@ public final class InfectionManager {
 		boolean antiseptic = stack.is(ANTISEPTICS);
 		boolean rinse = !antiseptic && isRinse(stack);
 		if (!antiseptic && !rinse) return;
+		treatWounds(player, antiseptic);
+	}
 
+	/** Seals every open wound (antiseptic) or adds a rinse to each. Infections that have set in are untouched. */
+	public static void treatWounds(ServerPlayer player, boolean antiseptic) {
 		TransientState state = AfflictionData.getTransient(player);
 		Map<String, InfectionEntry> next = new HashMap<>(state.infections());
 		boolean changed = false;
@@ -169,6 +177,15 @@ public final class InfectionManager {
 	public static void cureAll(ServerPlayer player) {
 		TransientState state = AfflictionData.getTransient(player);
 		AfflictionData.setTransient(player, new TransientState(state.fear(), Map.of(), state.maxHealthLoss()));
+	}
+
+	/** Opens a fresh wound for a source that is not a mob hit, such as an FFInjury injury. Does nothing if one is open. */
+	public static void openWound(ServerPlayer player, String key, Component description) {
+		if (AfflictionData.getTransient(player).infections().containsKey(key)) return;
+		long now = player.level().getGameTime();
+		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + AfflictionsConfig.get().infectionRiskWindowTicks, 0));
+		player.sendSystemMessage(Component.literal("The wound from ").append(description)
+				.append(Component.literal(" is open. Treat it before it sets in.")));
 	}
 
 	private static String pathOf(String key) {

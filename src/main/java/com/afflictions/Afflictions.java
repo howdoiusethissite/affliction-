@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.afflictions.command.AfflictCommand;
+import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionAttachments;
 import com.afflictions.data.AfflictionData;
@@ -32,6 +33,7 @@ public class Afflictions implements ModInitializer {
 		FearManager.register();
 		InfectionManager.register();
 		MaxHealthManager.register();
+		FfinjuryCompat.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
 				AfflictCommand.register(dispatcher));

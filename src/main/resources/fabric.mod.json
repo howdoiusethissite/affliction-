@@ -26,6 +26,9 @@
 			"environment": "client"
 		}
 	],
+	"suggests": {
+		"ffinjury": ">=0.10.0"
+	},
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~26.3",

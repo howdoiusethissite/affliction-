@@ -22,6 +22,10 @@ loom {
 	}
 }
 
+// FFInjury (optional at runtime). It is All Rights Reserved and has no known Maven repo, so the jar is not in git:
+// drop it in libs/ to build. Its nested FFUtilities jar is picked up by the dev runtime automatically.
+def ffinjuryJar = file("libs/ffinjury-0.10.0-26.3-fabric.jar")
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -29,6 +33,12 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	if (!ffinjuryJar.exists()) {
+		throw new GradleException("Missing ${ffinjuryJar}. Download FFInjury 0.10.0 for 26.3 (Fabric) and put it in libs/ (see docs/PLAN.md, FFInjury integration).")
+	}
+	compileOnly files(ffinjuryJar)
+	localRuntime files(ffinjuryJar)
 }
 
 processResources {
