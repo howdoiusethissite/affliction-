@@ -63,6 +63,49 @@ public final class AfflictionsConfig {
 	/** When false the bar only appears while fear is below 100. */
 	public boolean fearHudAlwaysVisible = true;
 
+	// Phase 4: infection, scars, max health loss. Health values are health points (2 per heart).
+	/** Chance that a mob hit of at least infectionMinDamage opens a wound with a risk window. */
+	public double infectionChance = 0.35;
+	public double infectionMinDamage = 2.0;
+	public int infectionRiskWindowTicks = 2400;
+	/** Chance an untreated wound sets in when its window closes. */
+	public double infectionSetInChance = 0.6;
+	/** Subtracted from infectionSetInChance for each water rinse during the window. */
+	public double infectionRinseReduction = 0.25;
+	/** Ticks an infection spends at each stage before escalating. */
+	public int infectionStageTicks = 6000;
+	/** Stage 1 is Weakness, 2 adds Hunger, 3 adds stronger Weakness and Slowness and costs max health each stage. */
+	public int infectionMaxStage = 3;
+	/** Max health lost each time an infection at the max stage goes another stage interval untreated. */
+	public double infectionMaxHealthLoss = 2.0;
+	/** An infection cured at this stage or later leaves a scar. */
+	public int infectionScarMinStage = 2;
+	/** A single mob hit of at least this much damage leaves a scar. 0 disables. */
+	public double scarSevereHitDamage = 10.0;
+	/** Max health lost per scar. */
+	public double scarMaxHealthPenalty = 1.0;
+	/** Max health never drops below this, however much is lost. */
+	public double minMaxHealth = 4.0;
+	/** Max health lost per second while the food bar is empty. */
+	public double starvationLossPerSecond = 0.01;
+	/** Lost max health only recovers while the food level is at least this (20 is full). */
+	public int maxHealthRecoveryMinFood = 18;
+	public double maxHealthRecoveryPerSecond = 0.005;
+	public double maxHealthSleepRecoveryPerSecond = 0.05;
+	/** Max health restored by eating an item in the afflictions:max_health_restorers tag. */
+	public double restorerMaxHealthRestore = 4.0;
+	public boolean lostHeartsHudEnabled = true;
+
+	// FFInjury integration. Everything here is ignored when FFInjury is not installed.
+	/** FFInjury injury ids that open an infection wound when newly applied. */
+	public java.util.List<String> ffinjuryWoundInjuries = java.util.List.of("bleeding", "burn");
+	/** Fear drain per second for each injury the player has. */
+	public double fearInjuryDrainPerSecond = 0.25;
+	/** FFInjury injury id granted when an infection first reaches its max stage. Empty disables. */
+	public String ffinjuryInfectionInjury = "bleeding";
+	/** When true and FFInjury is installed, mob hits no longer open wounds by themselves. */
+	public boolean ffinjuryReplacesMobWounds = false;
+
 	public static AfflictionsConfig get() {
 		return instance;
 	}

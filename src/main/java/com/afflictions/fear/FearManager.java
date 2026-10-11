@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
+import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.data.TransientState;
@@ -24,10 +25,10 @@ import com.afflictions.phobia.PhobiaManager;
 /** Phase 3: drains and restores the fear meter from the player's surroundings. */
 public final class FearManager {
 	/** Fear change per second from each source. Drains are positive numbers, recoveries are positive numbers. */
-	public record Rates(double dark, double cave, double phobia, double campfire, double jukebox,
+	public record Rates(double dark, double cave, double phobia, double injury, double campfire, double jukebox,
 			double companion, double sleep, double passive) {
 		public double drain() {
-			return this.dark + this.cave + this.phobia;
+			return this.dark + this.cave + this.phobia + this.injury;
 		}
 
 		public double recovery() {
@@ -68,13 +69,15 @@ public final class FearManager {
 	public static Rates compute(ServerPlayer player, boolean scanComfort) {
 		AfflictionsConfig config = AfflictionsConfig.get();
 		if (player.isSleeping()) {
-			return new Rates(0, 0, 0, 0, 0, 0, config.fearSleepRecoveryPerSecond, 0);
+			return new Rates(0, 0, 0, 0, 0, 0, 0, config.fearSleepRecoveryPerSecond, 0);
 		}
 
 		ServerLevel level = player.level();
 		double dark = isDark(player, level) ? config.fearDarkDrainPerSecond : 0;
 		double cave = isInCave(player, level) ? config.fearCaveDrainPerSecond : 0;
 		double phobia = PhobiaManager.activePhobiaCount(player) * config.fearPhobiaDrainPerSecond;
+
+		double injury = FfinjuryCompat.injuryCount(player) * config.fearInjuryDrainPerSecond;
 
 		double campfire = 0;
 		double jukebox = 0;
@@ -85,9 +88,9 @@ public final class FearManager {
 		}
 		double companion = scanComfort && hasCompanion(player, level) ? config.fearCompanionRecoveryPerSecond : 0;
 
-		boolean draining = dark + cave + phobia > 0;
+		boolean draining = dark + cave + phobia + injury > 0;
 		double passive = draining ? 0 : config.fearPassiveRecoveryPerSecond;
-		return new Rates(dark, cave, phobia, campfire, jukebox, companion, 0, passive);
+		return new Rates(dark, cave, phobia, injury, campfire, jukebox, companion, 0, passive);
 	}
 
 	private static boolean isDark(ServerPlayer player, ServerLevel level) {

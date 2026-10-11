@@ -38,3 +38,6 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
+
+# FFInjury is All Rights Reserved; supply the jar locally
+libs/

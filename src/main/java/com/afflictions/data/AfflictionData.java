@@ -74,6 +74,22 @@ public final class AfflictionData {
 		setTransient(player, getTransient(player).withFear(value));
 	}
 
+	public static void setInfection(Player player, String key, InfectionEntry entry) {
+		setTransient(player, getTransient(player).withInfection(key, entry));
+	}
+
+	public static void removeInfection(Player player, String key) {
+		setTransient(player, getTransient(player).withoutInfection(key));
+	}
+
+	public static float getMaxHealthLoss(Player player) {
+		return getTransient(player).maxHealthLoss();
+	}
+
+	public static void setMaxHealthLoss(Player player, float loss) {
+		setTransient(player, getTransient(player).withMaxHealthLoss(loss));
+	}
+
 	public static void clearAll(Player player) {
 		setPermanent(player, PermanentState.EMPTY);
 		setTransient(player, TransientState.EMPTY);

@@ -5,6 +5,7 @@ import java.util.Locale;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -19,6 +20,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 
 import com.afflictions.data.AfflictionData;
+import com.afflictions.config.AfflictionsConfig;
+import com.afflictions.data.InfectionEntry;
 import com.afflictions.data.Limb;
 import com.afflictions.data.LimbState;
 import com.afflictions.data.PermanentState;
@@ -77,6 +80,20 @@ public final class AfflictCommand {
 							AfflictionData.clearImplant(target(ctx), limbArg(ctx));
 							return done(ctx, "Cleared implant");
 						})))))
+				.then(Commands.literal("infection")
+						.then(Commands.literal("add").then(player().then(phobiaKey("source").executes(ctx -> addInfection(ctx, 0))
+								.then(Commands.argument("stage", IntegerArgumentType.integer(0, 9)).executes(ctx ->
+										addInfection(ctx, IntegerArgumentType.getInteger(ctx, "stage")))))))
+						.then(Commands.literal("remove").then(player().then(phobiaKey("source").executes(ctx -> {
+							AfflictionData.removeInfection(target(ctx), PhobiaKeys.normalize(StringArgumentType.getString(ctx, "source")));
+							return done(ctx, "Removed infection");
+						})))))
+				.then(Commands.literal("maxhealth")
+						.then(Commands.literal("loss").then(player().then(
+								Commands.argument("points", FloatArgumentType.floatArg(0f, 40f)).executes(ctx -> {
+									AfflictionData.setMaxHealthLoss(target(ctx), FloatArgumentType.getFloat(ctx, "points"));
+									return done(ctx, "Set max health loss");
+								})))))
 				.then(Commands.literal("fear")
 						.then(Commands.literal("rate").then(player().executes(ctx -> rate(ctx))))
 						.then(Commands.literal("set").then(player().then(
@@ -96,7 +113,11 @@ public final class AfflictCommand {
 
 	/** Greedy so that "minecraft:zombie" needs no quotes. Bare names like "zombie" are accepted too. */
 	private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> phobiaKey() {
-		return Commands.argument("key", StringArgumentType.greedyString())
+		return phobiaKey("key");
+	}
+
+	private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> phobiaKey(String name) {
+		return Commands.argument(name, StringArgumentType.greedyString())
 				.suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(PhobiaKeys.allKnownKeys(), b));
 	}
 
@@ -129,13 +150,23 @@ public final class AfflictCommand {
 		return 1;
 	}
 
+	/** Stage 0 opens a fresh wound with a full risk window. A later stage starts already infected. */
+	private static int addInfection(CommandContext<CommandSourceStack> ctx, int stage) throws CommandSyntaxException {
+		ServerPlayer p = target(ctx);
+		String key = PhobiaKeys.normalize(StringArgumentType.getString(ctx, "source"));
+		AfflictionsConfig config = AfflictionsConfig.get();
+		long ends = p.level().getGameTime() + (stage == 0 ? config.infectionRiskWindowTicks : config.infectionStageTicks);
+		AfflictionData.setInfection(p, key, new InfectionEntry(key, ends, stage));
+		return done(ctx, "Added infection at stage " + stage);
+	}
+
 	private static int rate(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		ServerPlayer p = target(ctx);
 		FearManager.Rates r = FearManager.compute(p, true);
 		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
-				"Fear %.1f for %s, net %+.2f/s. Drain: dark %.2f, cave %.2f, phobia %.2f. Recovery: campfire %.2f, jukebox %.2f, companion %.2f, sleep %.2f, passive %.2f",
+				"Fear %.1f for %s, net %+.2f/s. Drain: dark %.2f, cave %.2f, phobia %.2f, injuries %.2f. Recovery: campfire %.2f, jukebox %.2f, companion %.2f, sleep %.2f, passive %.2f",
 				AfflictionData.getFear(p), p.getName().getString(), r.net(),
-				r.dark(), r.cave(), r.phobia(), r.campfire(), r.jukebox(), r.companion(), r.sleep(), r.passive())), false);
+				r.dark(), r.cave(), r.phobia(), r.injury(), r.campfire(), r.jukebox(), r.companion(), r.sleep(), r.passive())), false);
 		return 1;
 	}
 
