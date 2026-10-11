@@ -30,6 +30,20 @@ public final class AfflictionData {
 		setPermanent(player, getPermanent(player).withoutPhobia(key));
 	}
 
+	public static boolean hasPhobia(Player player, String key) {
+		return getPermanent(player).phobias().containsKey(key);
+	}
+
+	/** Adds one exposure kill to a phobia the player has and returns the new count, or -1 if they lack it. */
+	public static int addExposureKill(Player player, String key) {
+		PermanentState s = getPermanent(player);
+		PhobiaEntry entry = s.phobias().get(key);
+		if (entry == null) return -1;
+		PhobiaEntry updated = entry.withExposureKills(entry.exposureKills() + 1);
+		setPermanent(player, s.withPhobia(key, updated));
+		return updated.exposureKills();
+	}
+
 	public static void addScar(Player player, String id) {
 		setPermanent(player, getPermanent(player).withScar(id));
 	}
