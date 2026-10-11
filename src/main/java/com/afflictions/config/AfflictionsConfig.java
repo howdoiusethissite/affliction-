@@ -111,6 +111,26 @@ public final class AfflictionsConfig {
 	public int clericScarMinLevel = 5;
 	public int clericScarCost = 24;
 
+	// Phase 6: amputation and implants. A penalty of 1.0 is a missing limb; 0 is a healthy one; negative is better than natural.
+	/** Chance, each time an infection at the max stage goes another stage interval untreated, that it takes a limb. 0 disables. */
+	public double infectionAmputationChance = 0.25;
+	/** Penalty left by each implant tier. Redstone only counts as charged while it has charge, otherwise it acts as a dead limb. */
+	public double implantPenaltyWood = 0.5;
+	public double implantPenaltyIron = 0.25;
+	public double implantPenaltyRedstone = -0.1;
+	public double implantPenaltyNetherite = -0.15;
+	/** Movement speed lost per leg at penalty 1.0 (a fraction of base speed). */
+	public double legSpeedPenalty = 0.3;
+	/** Mining speed lost per arm at penalty 1.0. */
+	public double armMiningPenalty = 0.35;
+	/** Attack speed lost per arm at penalty 1.0. */
+	public double armAttackSpeedPenalty = 0.25;
+	/** Redstone implant charge is in ticks of use. It drains continuously while the implant is installed. */
+	public int redstoneMaxCharge = 36000;
+	public int redstoneDustCharge = 6000;
+	/** Charge a freshly installed redstone implant starts with. */
+	public int redstoneInstallCharge = 6000;
+
 	// FFInjury integration. Everything here is ignored when FFInjury is not installed.
 	/** FFInjury injury ids that open an infection wound when newly applied. */
 	public java.util.List<String> ffinjuryWoundInjuries = java.util.List.of("bleeding", "burn");

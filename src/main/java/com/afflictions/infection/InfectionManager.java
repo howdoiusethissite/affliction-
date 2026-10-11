@@ -28,6 +28,7 @@ import com.afflictions.data.AfflictionData;
 import com.afflictions.data.InfectionEntry;
 import com.afflictions.data.TransientState;
 import com.afflictions.health.MaxHealthManager;
+import com.afflictions.limb.LimbManager;
 import com.afflictions.phobia.PhobiaKeys;
 
 /**
@@ -117,6 +118,9 @@ public final class InfectionManager {
 				next.put(key, entry.withRiskEndsTick(now + config.infectionStageTicks));
 				worst = Math.max(worst, entry.stage());
 				addedLoss += config.infectionMaxHealthLoss;
+				if (config.infectionAmputationChance > 0 && player.getRandom().nextDouble() < config.infectionAmputationChance) {
+					LimbManager.amputateRandom(player);
+				}
 			}
 		}
 

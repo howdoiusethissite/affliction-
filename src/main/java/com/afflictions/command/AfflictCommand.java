@@ -21,12 +21,14 @@ import net.minecraft.server.permissions.Permissions;
 
 import com.afflictions.data.AfflictionData;
 import com.afflictions.config.AfflictionsConfig;
+import com.afflictions.data.ImplantEntry;
 import com.afflictions.data.InfectionEntry;
 import com.afflictions.data.Limb;
 import com.afflictions.data.LimbState;
 import com.afflictions.data.PermanentState;
 import com.afflictions.data.TransientState;
 import com.afflictions.fear.FearManager;
+import com.afflictions.limb.LimbManager;
 import com.afflictions.phobia.PhobiaKeys;
 
 public final class AfflictCommand {
@@ -57,7 +59,7 @@ public final class AfflictCommand {
 						})))))
 				.then(Commands.literal("limb")
 						.then(Commands.literal("amputate").then(player().then(limb().executes(ctx -> {
-							AfflictionData.setLimb(target(ctx), limbArg(ctx), LimbState.AMPUTATED);
+							LimbManager.amputate(target(ctx), limbArg(ctx));
 							return done(ctx, "Amputated limb");
 						}))))
 						.then(Commands.literal("restore").then(player().then(limb().executes(ctx -> {
@@ -76,6 +78,18 @@ public final class AfflictCommand {
 											AfflictionData.setImplant(target(ctx), limbArg(ctx), tier);
 											return done(ctx, "Set implant");
 										})))))
+						.then(Commands.literal("charge").then(player().then(limb().then(
+								Commands.argument("ticks", IntegerArgumentType.integer(0, 1000000)).executes(ctx -> {
+									ServerPlayer p = target(ctx);
+									Limb limb = limbArg(ctx);
+									ImplantEntry entry = AfflictionData.getPermanent(p).implants().get(limb);
+									if (entry == null) {
+										throw new SimpleCommandExceptionType(Component.literal("No implant on that limb")).create();
+									}
+									AfflictionData.setPermanent(p, AfflictionData.getPermanent(p).withImplant(limb,
+											entry.withCharge(IntegerArgumentType.getInteger(ctx, "ticks"))));
+									return done(ctx, "Set implant charge");
+								})))))
 						.then(Commands.literal("clear").then(player().then(limb().executes(ctx -> {
 							AfflictionData.clearImplant(target(ctx), limbArg(ctx));
 							return done(ctx, "Cleared implant");

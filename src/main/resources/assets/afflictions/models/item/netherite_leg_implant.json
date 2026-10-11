@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "afflictions:item/netherite_leg_implant"
+ }
+}
