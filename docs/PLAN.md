@@ -50,7 +50,7 @@ One phase per chat. Each ends with a build that launches and something testable 
 5. **Cleric healing.** Sneak + right-click a cleric holding emeralds; services gated by villager level; costs from config.
 6. **Amputation and implants.** Implant items and recipes, smithing table install, redstone charge, stat effects per limb.
 7. **Hallucinations.** Client-side fake entities and sounds driven by synced fear value. Last, because it is the most fiddly and depends on everything above.
-8. **Polish.** Tooltips on vanilla treatment items, config screen, balancing, lang file.
+8. **Polish (done, 0.8.0).** Tooltips on vanilla treatment items, config screen, balancing, lang file.
 
 ## Phase 1 spec (hand to coding model)
 
@@ -130,12 +130,23 @@ All records get static `EMPTY` defaults and `with...` copy methods. Never mutate
 
 - Limb penalty: 0 intact, 1 amputated with nothing fitted, otherwise the implant tier's penalty (`implantPenaltyWood` 0.5, `Iron` 0.25, `Redstone` -0.1, `Netherite` -0.15). Implants only count on an amputated limb. A redstone implant at 0 charge counts as nothing fitted. Code: `LimbManager.penalty`.
 - Effects: legs scale movement speed (`legSpeedPenalty`) and a fully missing leg blocks sprinting. Arms scale mining speed (`armMiningPenalty`) and attack speed (`armAttackSpeedPenalty`). The offhand arm is the one opposite the main arm; when it is fully missing the offhand cannot be used and its item is moved to the inventory.
-- Amputation sources: an infection at max stage going another interval untreated rolls `infectionAmputationChance` (default 0.25) to take a random intact limb. `/afflict limb amputate` now also drops any fitted implant. Not done: the "re-broken limb at max tier" trigger (needs a decision on which FFInjury injuries count).
+- Amputation sources: an infection at max stage going another interval untreated rolls `infectionAmputationChance` (default 0.25) to take a random intact limb. `/afflict limb amputate` now also drops any fitted implant. The "re-broken limb at max tier" trigger was added in Phase 8.
 - New items (the only ones in the mod): `<tier>_<arm|leg>_implant` for wood, iron, redstone, netherite, with shaped recipes under `data/afflictions/recipe`, placeholder textures and an en_us lang file with only these item names. They appear in the Tools & Utilities creative tab.
 - Install: right-click a smithing table holding an implant. It fills a missing limb of that kind with no implant first, otherwise swaps an implant of a different tier (the old one returns as an item, charge lost).
 - Redstone charge is in ticks, drains 100 per 100 ticks while installed (`redstoneMaxCharge` 36000). Sneak + use redstone dust refills `redstoneDustCharge`. New install starts with `redstoneInstallCharge`.
 - New command: `/afflict implant charge <player> <limb> <ticks>`.
 - Checked: build and dedicated server startup with FFInjury (items and recipes load without errors). Not exercised with a real player: smithing table install, dust recharge, sprint and offhand blocking, attribute modifiers.
+
+## Phase 8 notes (done, 0.8.0)
+
+Phase 7 (hallucinations) was skipped on purpose and is still open.
+
+- **Re-broken limb amputation (decision).** Counts the injuries in `ffinjuryLimbBreakInjuries` (default `broken_leg`, `ankle_fracture`, the two leg injuries FFInjury ships). If the player already has one at FFInjury's max tier (`InjuryAPI.getDefaultMaxTier`) before a hit, and that hit is one of `ffinjuryLimbBreakDamageTypes` (default `minecraft:fall`) for at least `ffinjuryLimbBreakMinDamage` (4.0), there is an `ffinjuryLimbBreakAmputationChance` (0.35) chance to take a random intact leg. The max-tier state is read in `ALLOW_DAMAGE`, before FFInjury reacts, so the hit that first brings an injury to max never counts. Chosen over listening to `InjuryAppliedEvent` because `addOrIncreaseInjury` may return empty at max tier and then fire nothing. Arms are never taken by this trigger.
+- **Tooltips.** `TreatmentTooltips` adds gray one-liners through `ItemTooltipCallback` for the antiseptic and max health restorer tags, plain water bottles, Regeneration potions, redstone dust, the cleric payment item and the implants. Matches the server's tags, so packs extending a tag get the tooltip. `treatmentTooltipsEnabled` turns them off.
+- **Config screen.** `AfflictionsConfigScreen` builds itself by reflection over the public fields of `AfflictionsConfig` (booleans toggle, numbers, text and comma-separated lists use text boxes that turn red when invalid). Headings come from `@Section` on the first field of each group. Changes apply to the live config at once and are written on Done; Cancel re-reads the file; hovering shows the default. Opened with the client command `/afflictions config`. No Mod Menu entry yet because it would add a compile dependency.
+- **Lang file.** Every player-facing message, tooltip, HUD label, scar name and config label is a translation key in `en_us.json`. Config option names fall back to a humanized field name if a key is missing, so new options need no lang edit. `/afflict` output stays English.
+- **Balance.** Without play data only two changes: `infectionChance` 0.35 to 0.25 (a mob hit of one heart or more opened a wound too often) and `infectionRiskWindowTicks` 2400 to 3600 (three minutes to find honey). Everything else is unchanged and should be tuned in play through the config.
+- Checked: build with JDK 25 and dedicated server startup with FFInjury installed (config written with the new keys). Not exercised in a real client: the config screen layout, tooltips, and the leg re-break trigger.
 
 ## FFInjury integration (done with 0.4.0)
 
@@ -149,7 +160,7 @@ Soft dependency: `fabric.mod.json` only lists it under `suggests`, and the build
 | Us to FFInjury | Infection reaching its max stage | Grants `ffinjuryInfectionInjury` (default bleeding), guarded so it cannot loop back into a wound |
 | Both | `isGameplaySuppressed` | Creative players are skipped |
 
-`ffinjuryReplacesMobWounds` (default false) stops mob hits from opening wounds on their own when FFInjury is installed, to avoid two systems punishing the same hit. Phase 6 can read broken leg and ribs through `InjuryAPI.hasInjury`.
+`ffinjuryReplacesMobWounds` (default false) stops mob hits from opening wounds on their own when FFInjury is installed, to avoid two systems punishing the same hit. Phase 6's re-break trigger uses `InjuryAPI.getTier` (see Phase 8 notes).
 
 Only startup with both mods was checked (the log shows the integration enabled). The event hooks have not been exercised with a real player, and running without FFInjury was not tested.
 

@@ -73,8 +73,7 @@ public final class InfectionManager {
 
 		long now = player.level().getGameTime();
 		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + config.infectionRiskWindowTicks, 0));
-		player.sendSystemMessage(Component.literal("The wound from ").append(mob.getType().getDescription())
-				.append(Component.literal(" is open. Treat it before it sets in.")));
+		player.sendSystemMessage(Component.translatable("afflictions.message.wound_open", mob.getType().getDescription()));
 	}
 
 	private static void tickPlayer(ServerPlayer player) {
@@ -104,15 +103,15 @@ public final class InfectionManager {
 				if (player.getRandom().nextDouble() < chance) {
 					next.put(key, new InfectionEntry(key, now + config.infectionStageTicks, 1, entry.rinses()));
 					worst = Math.max(worst, 1);
-					player.sendSystemMessage(Component.literal("Your wound is infected."));
+					player.sendSystemMessage(Component.translatable("afflictions.message.wound_infected"));
 				} else {
-					player.sendSystemMessage(Component.literal("Your wound heals cleanly."));
+					player.sendSystemMessage(Component.translatable("afflictions.message.wound_clean"));
 				}
 			} else if (entry.stage() < config.infectionMaxStage) {
 				InfectionEntry advanced = new InfectionEntry(key, now + config.infectionStageTicks, entry.stage() + 1, entry.rinses());
 				next.put(key, advanced);
 				worst = Math.max(worst, advanced.stage());
-				player.sendSystemMessage(Component.literal("Your infection is getting worse."));
+				player.sendSystemMessage(Component.translatable("afflictions.message.infection_worse"));
 				if (advanced.stage() >= config.infectionMaxStage) FfinjuryCompat.grantInfectionInjury(player);
 			} else {
 				next.put(key, entry.withRiskEndsTick(now + config.infectionStageTicks));
@@ -143,7 +142,7 @@ public final class InfectionManager {
 		if (entry.stage() >= AfflictionsConfig.get().infectionScarMinStage) {
 			AfflictionData.addScar(player, "infection_" + pathOf(entry.source()));
 		}
-		player.sendSystemMessage(Component.literal("Your infection clears up."));
+		player.sendSystemMessage(Component.translatable("afflictions.message.infection_cleared"));
 	}
 
 	/** Called when a player finishes drinking or eating an item. */
@@ -167,11 +166,11 @@ public final class InfectionManager {
 		}
 		if (!changed) return;
 		AfflictionData.setTransient(player, new TransientState(state.fear(), next, state.maxHealthLoss()));
-		player.sendSystemMessage(Component.literal(antiseptic ? "The wound is cleaned and sealed." : "You rinse the wound."));
+		player.sendSystemMessage(Component.translatable(antiseptic ? "afflictions.message.wound_sealed" : "afflictions.message.wound_rinsed"));
 	}
 
 	/** In the rinse tag, and if it is a potion bottle then only plain water counts. */
-	private static boolean isRinse(ItemStack stack) {
+	public static boolean isRinse(ItemStack stack) {
 		if (!stack.is(RINSES)) return false;
 		PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
 		return contents == null || contents.is(Potions.WATER);
@@ -188,8 +187,7 @@ public final class InfectionManager {
 		if (AfflictionData.getTransient(player).infections().containsKey(key)) return;
 		long now = player.level().getGameTime();
 		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + AfflictionsConfig.get().infectionRiskWindowTicks, 0));
-		player.sendSystemMessage(Component.literal("The wound from ").append(description)
-				.append(Component.literal(" is open. Treat it before it sets in.")));
+		player.sendSystemMessage(Component.translatable("afflictions.message.wound_open", description));
 	}
 
 	private static String pathOf(String key) {

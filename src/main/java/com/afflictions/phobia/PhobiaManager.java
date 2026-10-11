@@ -75,8 +75,7 @@ public final class PhobiaManager {
 		int kills = AfflictionData.addExposureKill(killer, key);
 		if (kills < needed) return;
 		AfflictionData.removePhobia(killer, key);
-		killer.sendSystemMessage(Component.literal("You have faced your fear of ")
-				.append(victim.getType().getDescription()).append(Component.literal(" and overcome it.")));
+		killer.sendSystemMessage(Component.translatable("afflictions.message.phobia_overcome", victim.getType().getDescription()));
 	}
 
 	private static void tickPlayer(ServerPlayer player, int now) {
