@@ -15,6 +15,7 @@ import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionAttachments;
 import com.afflictions.data.AfflictionData;
+import com.afflictions.fear.FearEffects;
 import com.afflictions.fear.FearManager;
 import com.afflictions.health.MaxHealthManager;
 import com.afflictions.implant.AfflictionItems;
@@ -35,6 +36,7 @@ public class Afflictions implements ModInitializer {
 		AfflictionItems.register();
 		PhobiaManager.register();
 		FearManager.register();
+		FearEffects.register();
 		InfectionManager.register();
 		MaxHealthManager.register();
 		ClericManager.register();

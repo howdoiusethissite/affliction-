@@ -175,3 +175,17 @@ Paste this section plus the current phase into each new coding chat instead of r
 - Test with `/afflict` commands instead of dying or grinding for real.
 - Bump the version every iteration (0.1.0 for Phase 1, 0.2.0 for Phase 2, patch numbers for fixes).
 - After a phase passes its checklist, update this doc's decisions table if anything changed, then start the next chat.
+
+## Fear effects (0.9.0)
+
+Tiers from fear: Uneasy below 70, Shaken below 50, Breaking below 25, breakdown at 0 (all in config). Server code is `FearEffects`, tier math is `FearTier`, client code is `FearClientEffects` (heartbeat, sway, aim jitter) and `FearOverlay` (vignette, gray wash, flickering health and hunger bars).
+
+- **Natural regeneration** is slowed without touching the food code: a rise of at most one health point with no Regeneration effect is undone with the tier's chance. Side effect: the exhaustion that heal cost is still spent.
+- **Mob detection** adds a transient `FOLLOW_RANGE` modifier to monsters near a Shaken or worse player and removes it a second after they leave.
+- **Villager prices** add to every offer's special price difference when the player clicks a villager, and reset it first so a click that never opened the trade screen cannot stack.
+- **Sleep** multiplies recovery per tier and caps the gain of one sleep (`fearSleepMaxRestorePerNight`) when it began at Shaken or lower.
+- **Experience** is scaled in `PlayerMixin` on `Player.giveExperiencePoints`, the only new mixin.
+- **Breakdown** runs from `FearManager` when fear reaches 0 (`/afflict fear set @s 0` triggers it).
+- **Desaturation** is a translucent gray fill, not a real saturation shader.
+- **Left out:** compass and clock spinning.
+- **Not compiled or run in a game** when written. Unverified vanilla names: `Player.giveExperiencePoints`, `Player.causeFoodExhaustion`, `MerchantOffer.resetSpecialPriceDiff` and `addToSpecialPriceDiff`, `Villager.getTradingPlayer`, `SoundEvents.WARDEN_HEARTBEAT`, `SimpleSoundInstance.forUI(SoundEvent, float, float)`, `MobEffects.SPEED`, `STRENGTH`, `RESISTANCE`, `MINING_FATIGUE`, `HudElementRegistry.replaceElement`, `VanillaHudElements.HEALTH_BAR`, and the `HudElement` method name `extractRenderState`.
