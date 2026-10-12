@@ -3,7 +3,8 @@
 	"package": "com.afflictions.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"LivingEntityMixin"
+		"LivingEntityMixin",
+		"PlayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

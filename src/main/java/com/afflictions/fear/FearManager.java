@@ -58,6 +58,13 @@ public final class FearManager {
 		Rates rates = compute(player, fear < TransientState.MAX_FEAR);
 		float updated = (float) (fear + rates.net() * intervalTicks / 20.0);
 		updated = Math.max(0f, Math.min(TransientState.MAX_FEAR, updated));
+		// Sleep can only lift fear so far in one night once the player is Shaken or worse.
+		float ceiling = FearEffects.sleepCeiling(player, fear);
+		if (updated > fear) updated = Math.min(updated, Math.max(fear, ceiling));
+		if (AfflictionsConfig.get().fearEffectsEnabled && (fear <= 0f || updated <= 0f)) {
+			FearEffects.breakdown(player);
+			return;
+		}
 		// Only write on change: every setAttached on a synced attachment sends a packet.
 		if (Math.abs(updated - fear) > 0.001f) AfflictionData.setFear(player, updated);
 	}
@@ -69,7 +76,8 @@ public final class FearManager {
 	public static Rates compute(ServerPlayer player, boolean scanComfort) {
 		AfflictionsConfig config = AfflictionsConfig.get();
 		if (player.isSleeping()) {
-			return new Rates(0, 0, 0, 0, 0, 0, 0, config.fearSleepRecoveryPerSecond, 0);
+			double sleep = config.fearSleepRecoveryPerSecond * FearEffects.sleepMultiplier(FearTier.of(AfflictionData.getFear(player)));
+			return new Rates(0, 0, 0, 0, 0, 0, 0, sleep, 0);
 		}
 
 		ServerLevel level = player.level();

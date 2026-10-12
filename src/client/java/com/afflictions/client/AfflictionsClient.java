@@ -19,6 +19,8 @@ public class AfflictionsClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		FearHud.register();
+		FearOverlay.register();
+		FearClientEffects.register();
 		LostHeartsHud.register();
 		ScarIcons.register();
 		TreatmentTooltips.register();

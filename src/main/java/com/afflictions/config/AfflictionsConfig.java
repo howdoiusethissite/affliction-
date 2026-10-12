@@ -70,6 +70,81 @@ public final class AfflictionsConfig {
 	/** When false the bar only appears while fear is below 100. */
 	public boolean fearHudAlwaysVisible = true;
 
+	// Fear effects: what a low fear value does to the player. Fear 100 is calm, 0 is a breakdown.
+	/** Master switch for every effect in this group (the tiers, the breakdown and the client atmosphere). */
+	@Section("Fear effects")
+	public boolean fearEffectsEnabled = true;
+	/** Fear below this is Uneasy. */
+	public double fearUneasyBelow = 70.0;
+	/** Fear below this is Shaken. */
+	public double fearShakenBelow = 50.0;
+	/** Fear below this is Breaking. At 0 a breakdown happens. */
+	public double fearBreakingBelow = 25.0;
+
+	// Uneasy
+	/** Chance that a natural regeneration tick of health is undone, per tier. */
+	public double fearRegenBlockChanceUneasy = 0.3;
+	public double fearRegenBlockChanceShaken = 0.5;
+	public double fearRegenBlockChanceBreaking = 0.65;
+	public boolean fearHeartbeatEnabled = true;
+	public double fearHeartbeatVolume = 0.7;
+	/** Beats per minute at the top of the Uneasy tier and at fear 0. */
+	public double fearHeartbeatSlowBpm = 60.0;
+	public double fearHeartbeatFastBpm = 150.0;
+	public boolean fearVignetteEnabled = true;
+	/** Opacity (0 to 1) of the darkened screen edges at fear 0. */
+	public double fearVignetteMaxAlpha = 0.6;
+	/** Opacity (0 to 1) of the gray wash that dulls colors at fear 0. */
+	public double fearDesaturationMaxAlpha = 0.25;
+
+	// Shaken
+	/** Degrees of camera sway at the Shaken tier (1.6 times as much when Breaking). 0 disables. */
+	public double fearSwayDegrees = 0.35;
+	/** Extra degrees of random aim jitter while drawing a bow or crossbow. 0 disables. */
+	public double fearAimJitterDegrees = 1.0;
+	/** Extra food exhaustion per second (4.0 exhaustion costs one hunger point). */
+	public double fearHungerExhaustionPerSecondShaken = 0.02;
+	public double fearHungerExhaustionPerSecondBreaking = 0.04;
+	/** Blocks added to the follow range of monsters near the player. */
+	public double fearMobDetectionExtraRangeShaken = 8.0;
+	public double fearMobDetectionExtraRangeBreaking = 16.0;
+	/** Emeralds (or whatever the first cost is) added to every villager trade price. */
+	public int fearVillagerPriceIncreaseShaken = 1;
+	public int fearVillagerPriceIncreaseBreaking = 2;
+	/** Sleep recovery is multiplied by this per tier. */
+	public double fearSleepRecoveryMultiplierShaken = 0.5;
+	public double fearSleepRecoveryMultiplierBreaking = 0.25;
+	/** A sleep that starts at Shaken or lower cannot restore more than this much fear. */
+	public double fearSleepMaxRestorePerNight = 30.0;
+
+	// Breaking
+	public boolean fearHudGlitchEnabled = true;
+	/** Chance that a hit from a mob or player triggers panic. */
+	public double fearPanicChance = 0.5;
+	public double fearPanicMinDamage = 1.0;
+	public int fearPanicSpeedTicks = 60;
+	public int fearPanicSpeedAmplifier = 1;
+	/** Slowness and Weakness duration once the speed burst ends. */
+	public int fearPanicCrashTicks = 200;
+	public int fearPanicCooldownTicks = 400;
+	/** Chance to drop the held item when a hit does at least fearFumbleMinDamage. */
+	public double fearFumbleChance = 0.3;
+	public double fearFumbleMinDamage = 6.0;
+	/** Experience gained is multiplied by this while Breaking. */
+	public double fearXpMultiplier = 0.5;
+
+	// Breakdown at fear 0
+	/** Fear after a breakdown or a steeled moment. */
+	public double fearBreakdownRestoreTo = 30.0;
+	/** Chance that hitting 0 is a steeled moment instead of a breakdown. */
+	public double fearSteeledChance = 0.1;
+	public int fearBreakdownDebuffTicks = 3600;
+	/** Chance a breakdown leaves a new phobia (of the nearest monster, otherwise an environmental one). */
+	public double fearBreakdownPhobiaChance = 0.35;
+	public int fearSteeledTicks = 1800;
+	public int fearSteeledStrengthAmplifier = 1;
+	public int fearSteeledResistanceAmplifier = 1;
+
 	// Phase 4: infection, scars, max health loss. Health values are health points (2 per heart).
 	/** Chance that a mob hit of at least infectionMinDamage opens a wound with a risk window. */
 	@Section("Infection and scars")
