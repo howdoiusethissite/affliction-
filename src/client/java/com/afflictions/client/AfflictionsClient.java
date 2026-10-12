@@ -29,10 +29,17 @@ public class AfflictionsClient implements ClientModInitializer {
 		LostHeartsHud.register();
 		ScarIcons.register();
 		TreatmentTooltips.register();
+		WoundStatus.register();
 
 		// /afflictions config opens the settings screen. The screen is opened next tick so the chat screen has closed.
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
 				dispatcher.register(ClientCommands.literal("afflictions")
+						.then(ClientCommands.literal("wounds").executes(ctx -> {
+							var lines = WoundStatus.lines(Minecraft.getInstance().player);
+							if (lines.isEmpty()) ctx.getSource().sendFeedback(Component.translatable("afflictions.status.none"));
+							lines.forEach(line -> ctx.getSource().sendFeedback(line));
+							return 1;
+						}))
 						.then(ClientCommands.literal("config").executes(ctx -> {
 							Minecraft minecraft = Minecraft.getInstance();
 							minecraft.schedule(() -> minecraft.setScreenAndShow(new AfflictionsConfigScreen(null)));

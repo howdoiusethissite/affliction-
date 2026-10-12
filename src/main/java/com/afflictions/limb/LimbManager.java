@@ -35,6 +35,7 @@ import com.afflictions.data.ImplantEntry;
 import com.afflictions.data.Limb;
 import com.afflictions.data.LimbState;
 import com.afflictions.data.PermanentState;
+import com.afflictions.data.TransientState;
 import com.afflictions.implant.AfflictionItems;
 import com.afflictions.implant.ImplantItem;
 import com.afflictions.implant.ImplantTier;
@@ -61,14 +62,15 @@ public final class LimbManager {
 			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 				if (!player.isAlive() || player.isSpectator()) continue;
 				PermanentState state = AfflictionData.getPermanent(player);
-				if (state.limbs().isEmpty() && state.implants().isEmpty()) {
+				TransientState trans = AfflictionData.getTransient(player);
+				if (state.limbs().isEmpty() && state.implants().isEmpty() && trans.crippled().isEmpty()) {
 					if (tick % EFFECT_INTERVAL == 0) clearModifiers(player);
 					continue;
 				}
 				if (tick % CHARGE_INTERVAL == 0) drainCharge(player, state);
 				if (isSprintBlocked(state) && player.isSprinting()) player.setSprinting(false);
 				if (isOffhandBlocked(player, state)) dropOffhand(player);
-				if (tick % EFFECT_INTERVAL == 0) applyModifiers(player, state);
+				if (tick % EFFECT_INTERVAL == 0) applyModifiers(player, state, trans);
 			}
 		});
 
@@ -101,6 +103,15 @@ public final class LimbManager {
 		if (tier.isEmpty()) return 1.0;
 		if (tier.get().needsCharge() && entry.charge() <= 0) return 1.0;
 		return tier.get().penalty();
+	}
+
+	/** {@link #penalty} plus the weakness of a crippled limb (the larger of the two, so crippling never stacks on an implant). */
+	public static double effectivePenalty(PermanentState state, TransientState trans, Limb limb) {
+		double penalty = penalty(state, limb);
+		if (state.limb(limb) == LimbState.INTACT && trans.crippled().containsKey(limb)) {
+			penalty = Math.max(penalty, AfflictionsConfig.get().crippledLimbPenalty);
+		}
+		return penalty;
 	}
 
 	public static boolean isMissing(PermanentState state, Limb limb) {
@@ -151,6 +162,11 @@ public final class LimbManager {
 		}
 		if (intact.isEmpty()) return false;
 		return amputate(player, intact.get(player.getRandom().nextInt(intact.size())));
+	}
+
+	public static Limb randomLimb(Player player) {
+		Limb[] all = Limb.values();
+		return all[player.getRandom().nextInt(all.length)];
 	}
 
 	public static Component limbName(Limb limb) {
@@ -268,10 +284,10 @@ public final class LimbManager {
 
 	// ---- stat effects --------------------------------------------------------------------------------------
 
-	private static void applyModifiers(ServerPlayer player, PermanentState state) {
+	private static void applyModifiers(ServerPlayer player, PermanentState state, TransientState trans) {
 		AfflictionsConfig config = AfflictionsConfig.get();
-		double legs = penalty(state, Limb.LEFT_LEG) + penalty(state, Limb.RIGHT_LEG);
-		double arms = penalty(state, Limb.LEFT_ARM) + penalty(state, Limb.RIGHT_ARM);
+		double legs = effectivePenalty(state, trans, Limb.LEFT_LEG) + effectivePenalty(state, trans, Limb.RIGHT_LEG);
+		double arms = effectivePenalty(state, trans, Limb.LEFT_ARM) + effectivePenalty(state, trans, Limb.RIGHT_ARM);
 		setModifier(player, Attributes.MOVEMENT_SPEED, LEG_SPEED_ID, -legs * config.legSpeedPenalty);
 		setModifier(player, Attributes.BLOCK_BREAK_SPEED, ARM_MINING_ID, -arms * config.armMiningPenalty);
 		setModifier(player, Attributes.ATTACK_SPEED, ARM_ATTACK_ID, -arms * config.armAttackSpeedPenalty);

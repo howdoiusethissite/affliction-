@@ -3,7 +3,7 @@
 	"id": "afflictions",
 	"version": "${version}",
 	"name": "Afflictions",
-	"description": "Makes survival tense. Dying leaves phobias, darkness and caves drain a fear meter (a torch or lantern in your offhand holds it back), low fear weakens you, untreated wounds become infections and scars, and severe damage can cost a limb that you replace with a crafted implant. Everything is tunable in the in-game settings screen. Optionally reads FFInjury.",
+	"description": "Makes survival tense. Dying leaves phobias, darkness and caves drain a fear meter (a torch or lantern in your offhand holds it back), low fear weakens you, untreated wounds become infections and scars, and wounds remember which limb they are on, huge hits can cripple a limb, and an infection or your own choice can cost a limb that you replace with a crafted implant. Everything is tunable in the in-game settings screen. Optionally works with FFInjury and Trinkets.",
 	"authors": [
 		"Afflictions"
 	],
@@ -27,7 +27,8 @@
 		}
 	],
 	"suggests": {
-		"ffinjury": ">=0.10.0"
+		"ffinjury": ">=0.10.0",
+		"trinkets": "*"
 	},
 	"depends": {
 		"fabricloader": ">=0.19.5",

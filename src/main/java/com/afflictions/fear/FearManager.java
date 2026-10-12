@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import com.afflictions.compat.FfinjuryCompat;
+import com.afflictions.compat.TrinketsCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.data.TransientState;
@@ -112,11 +113,12 @@ public final class FearManager {
 		return new Rates(dark, cave, phobia, injury, campfire, jukebox, companion, 0, passive, light);
 	}
 
-	/** A configured light source item in the offhand, or the main hand when that option is on. */
+	/** A configured light source item in the offhand, in a Trinkets slot, or in the main hand when that option is on. */
 	public static boolean holdsLightSource(Player player) {
 		AfflictionsConfig config = AfflictionsConfig.get();
 		return isLightSource(player.getOffhandItem(), config)
-				|| config.fearLightSourceMainHand && isLightSource(player.getMainHandItem(), config);
+				|| config.fearLightSourceMainHand && isLightSource(player.getMainHandItem(), config)
+				|| config.fearLightSourceTrinkets && TrinketsCompat.anyEquipped(player, stack -> isLightSource(stack, config));
 	}
 
 	private static boolean isLightSource(ItemStack stack, AfflictionsConfig config) {

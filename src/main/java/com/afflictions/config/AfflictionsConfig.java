@@ -76,6 +76,8 @@ public final class AfflictionsConfig {
 	public double fearLightSourceRecoveryPerSecond = 0.25;
 	/** Also count a light source in the main hand. */
 	public boolean fearLightSourceMainHand = false;
+	/** Also count a light source in any Trinkets slot (torches and lanterns can be worn in the belt slot). Ignored without Trinkets. */
+	public boolean fearLightSourceTrinkets = true;
 	public boolean fearHudEnabled = true;
 	/** When false the bar only appears while fear is below 100. */
 	public boolean fearHudAlwaysVisible = true;
@@ -226,6 +228,25 @@ public final class AfflictionsConfig {
 	public int redstoneDustCharge = 6000;
 	/** Charge a freshly installed redstone implant starts with. */
 	public int redstoneInstallCharge = 6000;
+
+	// Crippling: one huge hit that does not kill leaves a limb weak for a while. Damage values are health points (2 per heart).
+	/** A single hit of at least this much damage that leaves you alive can cripple a limb. 0 disables. */
+	@Section("Crippling and wounds")
+	public double crippleDamageThreshold = 12.0;
+	public double crippleChance = 0.6;
+	/** Falls cripple a leg, everything else a random limb. Ticks until the limb recovers by itself (20 per second). */
+	public int crippleDurationTicks = 12000;
+	/** Penalty on a crippled limb, same scale as implants (1.0 acts like a missing limb, 0.5 is a wooden one). */
+	public double crippledLimbPenalty = 0.6;
+	/** Shows a list of open wounds, infections and crippled limbs in the top-left corner (client side). */
+	public boolean woundHudEnabled = true;
+
+	// Voluntary amputation: /amputate <limb>, to swap a healthy limb for an implant on purpose.
+	@Section("Voluntary amputation")
+	public boolean voluntaryAmputationEnabled = true;
+	public boolean voluntaryAmputationNeedsSmithingTable = true;
+	/** Blocks within which a smithing table must be. */
+	public int voluntaryAmputationTableRange = 4;
 
 	// FFInjury integration. Everything here is ignored when FFInjury is not installed.
 	/** FFInjury injury ids that open an infection wound when newly applied. */

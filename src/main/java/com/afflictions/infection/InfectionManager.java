@@ -26,6 +26,8 @@ import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.data.InfectionEntry;
+import com.afflictions.data.Limb;
+import com.afflictions.data.LimbState;
 import com.afflictions.data.TransientState;
 import com.afflictions.health.MaxHealthManager;
 import com.afflictions.limb.LimbManager;
@@ -72,8 +74,10 @@ public final class InfectionManager {
 		if (player.getRandom().nextDouble() >= config.infectionChance) return;
 
 		long now = player.level().getGameTime();
-		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + config.infectionRiskWindowTicks, 0));
-		player.sendSystemMessage(Component.translatable("afflictions.message.wound_open", mob.getType().getDescription()));
+		Limb limb = LimbManager.randomLimb(player);
+		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + config.infectionRiskWindowTicks, 0, limb));
+		player.sendSystemMessage(Component.translatable("afflictions.message.wound_open_limb",
+				mob.getType().getDescription(), LimbManager.limbName(limb)));
 	}
 
 	private static void tickPlayer(ServerPlayer player) {
@@ -101,14 +105,14 @@ public final class InfectionManager {
 			if (entry.stage() == 0) {
 				double chance = config.infectionSetInChance - entry.rinses() * config.infectionRinseReduction;
 				if (player.getRandom().nextDouble() < chance) {
-					next.put(key, new InfectionEntry(key, now + config.infectionStageTicks, 1, entry.rinses()));
+					next.put(key, entry.withRiskEndsTick(now + config.infectionStageTicks).withStage(1));
 					worst = Math.max(worst, 1);
 					player.sendSystemMessage(Component.translatable("afflictions.message.wound_infected"));
 				} else {
 					player.sendSystemMessage(Component.translatable("afflictions.message.wound_clean"));
 				}
 			} else if (entry.stage() < config.infectionMaxStage) {
-				InfectionEntry advanced = new InfectionEntry(key, now + config.infectionStageTicks, entry.stage() + 1, entry.rinses());
+				InfectionEntry advanced = entry.withRiskEndsTick(now + config.infectionStageTicks).withStage(entry.stage() + 1);
 				next.put(key, advanced);
 				worst = Math.max(worst, advanced.stage());
 				player.sendSystemMessage(Component.translatable("afflictions.message.infection_worse"));
@@ -118,13 +122,17 @@ public final class InfectionManager {
 				worst = Math.max(worst, entry.stage());
 				addedLoss += config.infectionMaxHealthLoss;
 				if (config.infectionAmputationChance > 0 && player.getRandom().nextDouble() < config.infectionAmputationChance) {
-					LimbManager.amputateRandom(player);
+					// The infected limb goes first. Random only when it is unknown or already gone.
+					Limb infected = entry.limbOrNull();
+					boolean taken = infected != null && AfflictionData.getPermanent(player).limb(infected) == LimbState.INTACT
+							&& LimbManager.amputate(player, infected);
+					if (!taken) LimbManager.amputateRandom(player);
 				}
 			}
 		}
 
 		if (!next.equals(state.infections()) || addedLoss > 0f) {
-			AfflictionData.setTransient(player, new TransientState(state.fear(), next, state.maxHealthLoss()));
+			AfflictionData.setTransient(player, state.withInfections(next));
 			if (addedLoss > 0f) MaxHealthManager.addLoss(player, addedLoss);
 		}
 		applyDebuffs(player, worst);
@@ -165,7 +173,7 @@ public final class InfectionManager {
 			else next.put(entry.source(), entry.withRinses(entry.rinses() + 1));
 		}
 		if (!changed) return;
-		AfflictionData.setTransient(player, new TransientState(state.fear(), next, state.maxHealthLoss()));
+		AfflictionData.setTransient(player, state.withInfections(next));
 		player.sendSystemMessage(Component.translatable(antiseptic ? "afflictions.message.wound_sealed" : "afflictions.message.wound_rinsed"));
 	}
 
@@ -179,15 +187,16 @@ public final class InfectionManager {
 	/** Clears every infection and wound without leaving a scar. For cleric healing in a later phase. */
 	public static void cureAll(ServerPlayer player) {
 		TransientState state = AfflictionData.getTransient(player);
-		AfflictionData.setTransient(player, new TransientState(state.fear(), Map.of(), state.maxHealthLoss()));
+		AfflictionData.setTransient(player, state.withInfections(Map.of()));
 	}
 
 	/** Opens a fresh wound for a source that is not a mob hit, such as an FFInjury injury. Does nothing if one is open. */
 	public static void openWound(ServerPlayer player, String key, Component description) {
 		if (AfflictionData.getTransient(player).infections().containsKey(key)) return;
 		long now = player.level().getGameTime();
-		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + AfflictionsConfig.get().infectionRiskWindowTicks, 0));
-		player.sendSystemMessage(Component.translatable("afflictions.message.wound_open", description));
+		Limb limb = LimbManager.randomLimb(player);
+		AfflictionData.setInfection(player, key, new InfectionEntry(key, now + AfflictionsConfig.get().infectionRiskWindowTicks, 0, limb));
+		player.sendSystemMessage(Component.translatable("afflictions.message.wound_open_limb", description, LimbManager.limbName(limb)));
 	}
 
 	private static String pathOf(String key) {

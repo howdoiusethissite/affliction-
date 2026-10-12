@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.afflictions.cleric.ClericManager;
 import com.afflictions.command.AfflictCommand;
+import com.afflictions.command.AmputateCommand;
 import com.afflictions.compat.FfinjuryCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionAttachments;
@@ -20,6 +21,7 @@ import com.afflictions.fear.FearManager;
 import com.afflictions.health.MaxHealthManager;
 import com.afflictions.implant.AfflictionItems;
 import com.afflictions.infection.InfectionManager;
+import com.afflictions.limb.CrippleManager;
 import com.afflictions.limb.LimbManager;
 import com.afflictions.data.PermanentState;
 import com.afflictions.phobia.PhobiaManager;
@@ -41,10 +43,13 @@ public class Afflictions implements ModInitializer {
 		MaxHealthManager.register();
 		ClericManager.register();
 		LimbManager.register();
+		CrippleManager.register();
 		FfinjuryCompat.register();
 
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-				AfflictCommand.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+					AfflictCommand.register(dispatcher);
+					AmputateCommand.register(dispatcher);
+				});
 
 		// copyOnDeath is fixed at registration, so the config toggle works by clearing afterwards.
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
