@@ -75,7 +75,7 @@ public final class WoundStatus {
 		if (!AfflictionsConfig.get().woundHudEnabled) return;
 		Minecraft minecraft = Minecraft.getInstance();
 		LocalPlayer player = minecraft.player;
-		if (player == null || player.isSpectator() || minecraft.options.hideGui) return;
+		if (player == null || player.isSpectator()) return;
 
 		int y = 6;
 		for (Component line : lines(player)) {

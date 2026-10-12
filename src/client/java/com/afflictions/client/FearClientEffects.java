@@ -77,7 +77,7 @@ public final class FearClientEffects {
 		AfflictionsConfig config = AfflictionsConfig.get();
 		double targetYaw = 0;
 		double targetPitch = 0;
-		if (tier.atLeast(FearTier.SHAKEN) && minecraft.screen == null) {
+		if (tier.atLeast(FearTier.SHAKEN) && minecraft.gui.screen() == null) {
 			double t = player.tickCount;
 			double sway = config.fearSwayDegrees * (tier == FearTier.BREAKING ? 1.6 : 1.0);
 			targetYaw = sway * (Math.sin(t * 0.13) + 0.6 * Math.sin(t * 0.31 + 1.7));
