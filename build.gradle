@@ -26,6 +26,9 @@ loom {
 // drop it in libs/ to build. Its nested FFUtilities jar is picked up by the dev runtime automatically.
 def ffinjuryJar = file("libs/ffinjury-0.10.0-26.3-fabric.jar")
 
+// Trinkets Updated (optional at runtime). Drop the 26.3 jar in libs/ to build; it is only used to compile TrinketsBridge.
+def trinketsJar = file("libs/trinkets-4.2.1-26.3.jar")
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -37,6 +40,10 @@ dependencies {
 	if (!ffinjuryJar.exists()) {
 		throw new GradleException("Missing ${ffinjuryJar}. Download FFInjury 0.10.0 for 26.3 (Fabric) and put it in libs/ (see docs/PLAN.md, FFInjury integration).")
 	}
+	if (!trinketsJar.exists()) {
+		throw new GradleException("Missing ${trinketsJar}. Download Trinkets Updated 4.2.1 for 26.3 (Fabric) and put it in libs/ named trinkets-4.2.1-26.3.jar.")
+	}
+	compileOnly files(trinketsJar)
 	compileOnly files(ffinjuryJar)
 	localRuntime files(ffinjuryJar)
 }

@@ -5,18 +5,22 @@ import java.util.List;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import com.afflictions.compat.FfinjuryCompat;
+import com.afflictions.compat.TrinketsCompat;
 import com.afflictions.config.AfflictionsConfig;
 import com.afflictions.data.AfflictionData;
 import com.afflictions.data.TransientState;
@@ -26,13 +30,13 @@ import com.afflictions.phobia.PhobiaManager;
 public final class FearManager {
 	/** Fear change per second from each source. Drains are positive numbers, recoveries are positive numbers. */
 	public record Rates(double dark, double cave, double phobia, double injury, double campfire, double jukebox,
-			double companion, double sleep, double passive) {
+			double companion, double sleep, double passive, double light) {
 		public double drain() {
 			return this.dark + this.cave + this.phobia + this.injury;
 		}
 
 		public double recovery() {
-			return this.campfire + this.jukebox + this.companion + this.sleep + this.passive;
+			return this.campfire + this.jukebox + this.companion + this.sleep + this.passive + this.light;
 		}
 
 		/** Fear points per second, negative when draining. */
@@ -77,12 +81,20 @@ public final class FearManager {
 		AfflictionsConfig config = AfflictionsConfig.get();
 		if (player.isSleeping()) {
 			double sleep = config.fearSleepRecoveryPerSecond * FearEffects.sleepMultiplier(FearTier.of(AfflictionData.getFear(player)));
-			return new Rates(0, 0, 0, 0, 0, 0, 0, sleep, 0);
+			return new Rates(0, 0, 0, 0, 0, 0, 0, sleep, 0, 0);
 		}
 
 		ServerLevel level = player.level();
 		double dark = isDark(player, level) ? config.fearDarkDrainPerSecond : 0;
 		double cave = isInCave(player, level) ? config.fearCaveDrainPerSecond : 0;
+		// A held light calms the dark: it removes part or all of the drain and adds a little recovery on top.
+		double light = 0;
+		if ((dark > 0 || cave > 0) && holdsLightSource(player)) {
+			double keep = 1.0 - Math.max(0.0, Math.min(1.0, config.fearLightSourceDrainReduction));
+			dark *= keep;
+			cave *= keep;
+			light = config.fearLightSourceDrainReduction > 0 ? config.fearLightSourceRecoveryPerSecond : 0;
+		}
 		double phobia = PhobiaManager.activePhobiaCount(player) * config.fearPhobiaDrainPerSecond;
 
 		double injury = FfinjuryCompat.injuryCount(player) * config.fearInjuryDrainPerSecond;
@@ -98,7 +110,20 @@ public final class FearManager {
 
 		boolean draining = dark + cave + phobia + injury > 0;
 		double passive = draining ? 0 : config.fearPassiveRecoveryPerSecond;
-		return new Rates(dark, cave, phobia, injury, campfire, jukebox, companion, 0, passive);
+		return new Rates(dark, cave, phobia, injury, campfire, jukebox, companion, 0, passive, light);
+	}
+
+	/** A configured light source item in the offhand, in a Trinkets slot, or in the main hand when that option is on. */
+	public static boolean holdsLightSource(Player player) {
+		AfflictionsConfig config = AfflictionsConfig.get();
+		return isLightSource(player.getOffhandItem(), config)
+				|| config.fearLightSourceMainHand && isLightSource(player.getMainHandItem(), config)
+				|| config.fearLightSourceTrinkets && TrinketsCompat.anyEquipped(player, stack -> isLightSource(stack, config));
+	}
+
+	private static boolean isLightSource(ItemStack stack, AfflictionsConfig config) {
+		if (stack.isEmpty()) return false;
+		return config.fearLightSourceItems.contains(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
 	}
 
 	private static boolean isDark(ServerPlayer player, ServerLevel level) {

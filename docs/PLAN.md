@@ -189,3 +189,19 @@ Tiers from fear: Uneasy below 70, Shaken below 50, Breaking below 25, breakdown 
 - **Desaturation** is a translucent gray fill, not a real saturation shader.
 - **Left out:** compass and clock spinning.
 - **Not compiled or run in a game** when written. Unverified vanilla names: `Player.giveExperiencePoints`, `Player.causeFoodExhaustion`, `MerchantOffer.resetSpecialPriceDiff` and `addToSpecialPriceDiff`, `Villager.getTradingPlayer`, `SoundEvents.WARDEN_HEARTBEAT`, `SimpleSoundInstance.forUI(SoundEvent, float, float)`, `MobEffects.SPEED`, `STRENGTH`, `RESISTANCE`, `MINING_FATIGUE`, `HudElementRegistry.replaceElement`, `VanillaHudElements.HEALTH_BAR`, and the `HudElement` method name `extractRenderState`.
+
+## 0.10.0: pause-menu settings button and held light sources
+
+- **Settings screen** opens from an "Afflictions" button in the top-left of the pause menu (`ScreenEvents.AFTER_INIT`), as well as `/afflictions config`. Cancel returns to the pause menu.
+- **Light sources** held in the offhand (and the main hand if `fearLightSourceMainHand`) cancel `fearLightSourceDrainReduction` of the dark and cave drain and add `fearLightSourceRecoveryPerSecond`, only while it would otherwise be dark or deep. Items are matched by registry id from `fearLightSourceItems`. `/afflict fear rate` shows the new `light` term.
+- **Accessory slots:** vanilla has none, and no accessories mod is a dependency, so only hands are checked.
+- **Not compiled or run** (no JDK 25 where this was written). Unverified: `Screens.getWidgets` in Fabric API 0.161.0, `Minecraft.setScreenAndShow` from a button, and the `copper_torch` and `copper_lantern` item ids (an id that does not exist is simply never matched).
+
+## 0.11.0: wound locations, crippling, voluntary amputation, Trinkets
+
+- **Wound limb:** `InfectionEntry` has a `limb` string (serialized `Limb` name, empty for older saves). It is picked at random when a mob wound or FFInjury wound opens, kept through every stage, and is the limb an untreated max-stage infection amputates first (random fallback if it is gone).
+- **Display:** client `WoundStatus` draws a corner list from the synced transient state and backs `/afflictions wounds`. Times are `riskEndsTick` minus the client's game time.
+- **Crippling:** `TransientState.crippled` maps a limb to the tick it recovers. `CrippleManager` sets it from `AFTER_DAMAGE` (single hit at or above `crippleDamageThreshold`, survivor only, falls pick a leg). `LimbManager.effectivePenalty` takes the larger of the implant penalty and `crippledLimbPenalty` for intact limbs, so it only touches movement, mining and attack speed (no sprint or offhand block). Resets on death.
+- **Voluntary amputation:** `/amputate <limb>`, available to everyone, two-step confirm (15 s), optional smithing table within range. Refuses limbs that are already gone or already hold an implant.
+- **Trinkets:** `TrinketsCompat` and `TrinketsBridge` use `TrinketsApi.getAttachment(player).isEquipped(Predicate)`. `data/trinkets/tags/item/legs/belt.json` makes torches and lanterns wearable in the belt slot. The build needs `libs/trinkets-4.2.1-26.3.jar`.
+- **Not compiled or run** (no JDK 25 where this was written). Unverified: `DamageTypeTags.IS_FALL` and `BYPASSES_INVULNERABILITY`, `FabricClientCommandSource.sendFeedback`, `ServerLivingEntityEvents.AFTER_DAMAGE` also firing for hits that were survived (it is guarded by `isAlive`), and the Trinkets call above (checked against the jar's signatures with javap only).

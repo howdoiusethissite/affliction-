@@ -178,9 +178,9 @@ public final class AfflictCommand {
 		ServerPlayer p = target(ctx);
 		FearManager.Rates r = FearManager.compute(p, true);
 		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
-				"Fear %.1f for %s, net %+.2f/s. Drain: dark %.2f, cave %.2f, phobia %.2f, injuries %.2f. Recovery: campfire %.2f, jukebox %.2f, companion %.2f, sleep %.2f, passive %.2f",
+				"Fear %.1f for %s, net %+.2f/s. Drain: dark %.2f, cave %.2f, phobia %.2f, injuries %.2f. Recovery: campfire %.2f, jukebox %.2f, companion %.2f, sleep %.2f, passive %.2f, light %.2f",
 				AfflictionData.getFear(p), p.getName().getString(), r.net(),
-				r.dark(), r.cave(), r.phobia(), r.injury(), r.campfire(), r.jukebox(), r.companion(), r.sleep(), r.passive())), false);
+				r.dark(), r.cave(), r.phobia(), r.injury(), r.campfire(), r.jukebox(), r.companion(), r.sleep(), r.passive(), r.light())), false);
 		return 1;
 	}
 
