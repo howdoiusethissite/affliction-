@@ -2,14 +2,14 @@
 
 A Fabric mod for Minecraft 26.3 (Java 25) that makes survival tense. Deaths leave phobias, untreated wounds become infections and scars, and severe damage can cost a limb that you replace with a crafted implant. It works alone and also reads FFInjury when that mod is installed.
 
-Version 0.9.0. Hallucinations (Phase 7 in `docs/PLAN.md`) are not implemented yet.
+Version 0.10.0. Hallucinations (Phase 7 in `docs/PLAN.md`) are not implemented yet.
 
 ## Systems
 
 | System | What happens | Cure |
 | --- | --- | --- |
 | Phobias | Dying to a mob, a fall, drowning, lava or fire leaves a phobia. Near the source you get Nausea, Darkness and faster fear drain. | Cleric for emeralds, or kill the feared mob enough times |
-| Fear | A 0 to 100 meter drained by darkness, caves, phobias and injuries, shown as a small bar beside the hunger bar. | Campfires, jukeboxes, pets or villagers nearby, sleep |
+| Fear | A 0 to 100 meter drained by darkness, caves, phobias and injuries, shown as a small bar beside the hunger bar. | Campfires, jukeboxes, pets or villagers nearby, sleep, a torch or lantern in the offhand |
 | Fear effects | Low fear has tiers: Uneasy (below 70), Shaken (below 50), Breaking (below 25) and a one-time breakdown at 0. See the table below. | Raise fear |
 | Infection | Mob hits can open a wound with a short window before it sets in. Infections escalate through debuffs, max health loss and amputation risk. | Honey bottle or water rinse during the window, Regeneration or a cleric afterwards |
 | Scars | Late-cured infections and very heavy hits leave a permanent max health penalty, shown above the inventory. | Master cleric |
@@ -35,7 +35,8 @@ State lives on the player, so milk never touches it. Phobias, scars, amputations
 ## Using it
 
 - Tooltips on honey, water bottles, golden apples, Regeneration potions, redstone dust, emeralds and the implants explain what each does.
-- `/afflictions config` opens the settings screen (client command, works in singleplayer; on a dedicated server edit `config/afflictions.json` instead).
+- The settings screen opens from the "Afflictions" button in the top-left corner of the pause menu or with `/afflictions config`. Changes apply at once and are saved on Done. In singleplayer that is the config the game uses; on a dedicated server edit `config/afflictions.json` there instead.
+- Holding a torch, soul torch, copper torch, redstone torch, lantern, soul lantern or copper lantern in the offhand cancels the darkness and cave fear drain and restores a little fear. The item list, the strength and a main-hand option are in the config (`fearLightSource*`). Vanilla has no accessory slots, so there is no accessory check yet.
 - Test everything with `/afflict` (permission level 2): `list`, `phobia`, `scar`, `limb`, `implant`, `fear`, `infection`, `maxhealth`, `clear`.
 - Every tuning number is in `config/afflictions.json`. The settings screen lists every key with its default on hover.
 

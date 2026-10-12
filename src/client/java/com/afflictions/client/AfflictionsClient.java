@@ -4,8 +4,13 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.network.chat.Component;
 
 import com.afflictions.Afflictions;
 import com.afflictions.data.AfflictionData;
@@ -33,6 +38,13 @@ public class AfflictionsClient implements ClientModInitializer {
 							minecraft.schedule(() -> minecraft.setScreenAndShow(new AfflictionsConfigScreen(null)));
 							return 1;
 						}))));
+
+		// An "Afflictions" button in the top-left corner of the pause menu, clear of the vanilla button grid.
+		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+			if (!(screen instanceof PauseScreen)) return;
+			Screens.getWidgets(screen).add(Button.builder(Component.translatable("afflictions.config.open"),
+					b -> client.setScreenAndShow(new AfflictionsConfigScreen(screen))).bounds(6, 6, 100, 20).build());
+		});
 
 		// Debug only: log the synced values once whenever they change.
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {

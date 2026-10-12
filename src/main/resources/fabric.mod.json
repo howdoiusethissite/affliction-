@@ -3,7 +3,7 @@
 	"id": "afflictions",
 	"version": "${version}",
 	"name": "Afflictions",
-	"description": "Phobias, infections, scars, amputations and implants for survival Minecraft.",
+	"description": "Makes survival tense. Dying leaves phobias, darkness and caves drain a fear meter (a torch or lantern in your offhand holds it back), low fear weakens you, untreated wounds become infections and scars, and severe damage can cost a limb that you replace with a crafted implant. Everything is tunable in the in-game settings screen. Optionally reads FFInjury.",
 	"authors": [
 		"Afflictions"
 	],

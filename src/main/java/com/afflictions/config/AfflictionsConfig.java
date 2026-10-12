@@ -66,6 +66,16 @@ public final class AfflictionsConfig {
 	public double fearSleepRecoveryPerSecond = 3.0;
 	/** Slow recovery that applies only when nothing is draining fear. 0 disables it. */
 	public double fearPassiveRecoveryPerSecond = 0.1;
+	/** Holding one of these in the offhand (see fearLightSourceMainHand) cancels the darkness and cave drain. */
+	public java.util.List<String> fearLightSourceItems = java.util.List.of(
+			"minecraft:torch", "minecraft:soul_torch", "minecraft:copper_torch", "minecraft:redstone_torch",
+			"minecraft:lantern", "minecraft:soul_lantern", "minecraft:copper_lantern");
+	/** Share of the darkness and cave drain a light source removes (1.0 removes all of it, 0 disables the feature). */
+	public double fearLightSourceDrainReduction = 1.0;
+	/** Extra fear per second restored while a light source is held and it would otherwise be dark or deep underground. */
+	public double fearLightSourceRecoveryPerSecond = 0.25;
+	/** Also count a light source in the main hand. */
+	public boolean fearLightSourceMainHand = false;
 	public boolean fearHudEnabled = true;
 	/** When false the bar only appears while fear is below 100. */
 	public boolean fearHudAlwaysVisible = true;

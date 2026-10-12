@@ -189,3 +189,10 @@ Tiers from fear: Uneasy below 70, Shaken below 50, Breaking below 25, breakdown 
 - **Desaturation** is a translucent gray fill, not a real saturation shader.
 - **Left out:** compass and clock spinning.
 - **Not compiled or run in a game** when written. Unverified vanilla names: `Player.giveExperiencePoints`, `Player.causeFoodExhaustion`, `MerchantOffer.resetSpecialPriceDiff` and `addToSpecialPriceDiff`, `Villager.getTradingPlayer`, `SoundEvents.WARDEN_HEARTBEAT`, `SimpleSoundInstance.forUI(SoundEvent, float, float)`, `MobEffects.SPEED`, `STRENGTH`, `RESISTANCE`, `MINING_FATIGUE`, `HudElementRegistry.replaceElement`, `VanillaHudElements.HEALTH_BAR`, and the `HudElement` method name `extractRenderState`.
+
+## 0.10.0: pause-menu settings button and held light sources
+
+- **Settings screen** opens from an "Afflictions" button in the top-left of the pause menu (`ScreenEvents.AFTER_INIT`), as well as `/afflictions config`. Cancel returns to the pause menu.
+- **Light sources** held in the offhand (and the main hand if `fearLightSourceMainHand`) cancel `fearLightSourceDrainReduction` of the dark and cave drain and add `fearLightSourceRecoveryPerSecond`, only while it would otherwise be dark or deep. Items are matched by registry id from `fearLightSourceItems`. `/afflict fear rate` shows the new `light` term.
+- **Accessory slots:** vanilla has none, and no accessories mod is a dependency, so only hands are checked.
+- **Not compiled or run** (no JDK 25 where this was written). Unverified: `Screens.getWidgets` in Fabric API 0.161.0, `Minecraft.setScreenAndShow` from a button, and the `copper_torch` and `copper_lantern` item ids (an id that does not exist is simply never matched).
